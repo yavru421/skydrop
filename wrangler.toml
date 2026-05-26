@@ -7,3 +7,7 @@ command = "bash build.sh"
 [assets]
 directory = "output/wwwroot"
 binding = "ASSETS"
+
+[[routes]]
+pattern = "blazorpwa.dondlingergc.com"
+custom_domain = true
