@@ -1,0 +1,213 @@
+@page "/metronome"
+@inject ITunerService TunerService
+@inject IToastService ToastService
+@implements IAsyncDisposable
+
+<PageTitle>Metronome — TunerPWA</PageTitle>
+
+<div class="metro-page">
+
+    <div class="metro-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--signal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22V2M2 16l10-14 10 14"/>
+            <line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
+        <h1>Metronome</h1>
+    </div>
+
+    <!-- ── Pendulum ────────────────────────────────────────── -->
+    <div class="pendulum-wrap">
+        <div class="pendulum-housing">
+            <div class="pendulum-arm @(_isRunning && _pendulumRight ? "pendulum-right" : _isRunning ? "pendulum-left" : "pendulum-center")">
+                <div class="pendulum-weight @(_isAccentBeat ? "weight-accent" : _isBeat ? "weight-beat" : "")"></div>
+            </div>
+            <div class="pendulum-base">
+                <div class="bpm-big">@_bpm</div>
+                <div class="bpm-label">BPM</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Beat Indicators ────────────────────────────────── -->
+    <div class="beat-row">
+        @for (int i = 0; i < _beatsPerMeasure; i++)
+        {
+            var beatIdx = i; // capture
+            <div class="beat-dot @(beatIdx == _currentBeat && _isRunning ? (beatIdx == 0 ? "beat-accent" : "beat-active") : "")"></div>
+        }
+    </div>
+
+    <!-- ── BPM Slider ─────────────────────────────────────── -->
+    <div class="metro-controls-section">
+        <div class="bpm-slider-row">
+            <button id="btn-bpm-minus" class="btn-bpm-step" @onclick="DecrementBpm">−</button>
+            <input id="bpm-slider" type="range" min="20" max="300" step="1" class="metro-slider"
+                   @bind="_bpm" @bind:event="oninput" @onchange="OnBpmChanged" />
+            <button id="btn-bpm-plus" class="btn-bpm-step" @onclick="IncrementBpm">+</button>
+        </div>
+
+        <!-- Tempo labels -->
+        <div class="tempo-labels">
+            <span class="tempo-label @(_bpm <= 60 ? "tempo-active" : "")">Largo</span>
+            <span class="tempo-label @(_bpm > 60 && _bpm <= 76 ? "tempo-active" : "")">Adagio</span>
+            <span class="tempo-label @(_bpm > 76 && _bpm <= 108 ? "tempo-active" : "")">Moderato</span>
+            <span class="tempo-label @(_bpm > 108 && _bpm <= 156 ? "tempo-active" : "")">Allegro</span>
+            <span class="tempo-label @(_bpm > 156 ? "tempo-active" : "")">Presto</span>
+        </div>
+
+        <!-- Time Signature -->
+        <div class="time-sig-row">
+            <span class="time-sig-label">Time Signature</span>
+            <div class="time-sig-buttons">
+                @foreach (var sig in _timeSignatures)
+                {
+                    <button id="time-sig-@sig" class="btn-time-sig @(sig == _beatsPerMeasure ? "sig-active" : "")"
+                            @onclick="() => SetTimeSignature(sig)">
+                        @sig/4
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Play/Stop ──────────────────────────────────────── -->
+    <div class="metro-play-row">
+        @if (!_isRunning)
+        {
+            <button id="btn-metro-play" class="btn-metro-play" @onclick="StartMetronomeAsync">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                Start
+            </button>
+        }
+        else
+        {
+            <button id="btn-metro-stop" class="btn-metro-stop" @onclick="StopMetronomeAsync">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                    <rect x="4" y="4" width="16" height="16" rx="2"/>
+                </svg>
+                Stop
+            </button>
+        }
+    </div>
+
+    <!-- ── Tap Tempo ──────────────────────────────────────── -->
+    <button id="btn-tap-tempo" class="btn-tap-tempo" @onclick="TapTempo">
+        Tap Tempo
+    </button>
+
+</div>
+
+@code {
+    private bool _isRunning = false;
+    private int _bpm = 120;
+    private int _beatsPerMeasure = 4;
+    private int _currentBeat = 0;
+    private bool _isBeat = false;
+    private bool _isAccentBeat = false;
+    private bool _pendulumRight = false;
+
+    private readonly int[] _timeSignatures = { 2, 3, 4, 6 };
+
+    // Tap tempo
+    private List<long> _tapTimes = new();
+    private const int MAX_TAPS = 8;
+
+    private DotNetObjectReference<object>? _selfRef;
+
+    private async Task StartMetronomeAsync()
+    {
+        _selfRef = DotNetObjectReference.Create<object>(this);
+        _currentBeat = 0;
+        await TunerService.StartMetronomeAsync(_bpm, _beatsPerMeasure, _selfRef, nameof(OnBeat));
+        _isRunning = true;
+        StateHasChanged();
+    }
+
+    private async Task StopMetronomeAsync()
+    {
+        await TunerService.StopMetronomeAsync();
+        _isRunning = false;
+        _isBeat = false;
+        _isAccentBeat = false;
+        _currentBeat = 0;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async void OnBeat(int beat, bool isAccent)
+    {
+        _currentBeat = beat;
+        _isBeat = true;
+        _isAccentBeat = isAccent;
+        _pendulumRight = !_pendulumRight;
+        StateHasChanged();
+
+        await Task.Delay(60);
+        _isBeat = false;
+        _isAccentBeat = false;
+        StateHasChanged();
+    }
+
+    private async void OnBpmChanged(ChangeEventArgs e)
+    {
+        if (_isRunning)
+        {
+            await StopMetronomeAsync();
+            await StartMetronomeAsync();
+        }
+    }
+
+    private async void IncrementBpm()
+    {
+        _bpm = Math.Min(300, _bpm + 1);
+        if (_isRunning) { await StopMetronomeAsync(); await StartMetronomeAsync(); }
+        StateHasChanged();
+    }
+
+    private async void DecrementBpm()
+    {
+        _bpm = Math.Max(20, _bpm - 1);
+        if (_isRunning) { await StopMetronomeAsync(); await StartMetronomeAsync(); }
+        StateHasChanged();
+    }
+
+    private async void SetTimeSignature(int sig)
+    {
+        _beatsPerMeasure = sig;
+        if (_isRunning) { await StopMetronomeAsync(); await StartMetronomeAsync(); }
+        StateHasChanged();
+    }
+
+    private void TapTempo()
+    {
+        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        _tapTimes.Add(now);
+
+        // Discard taps older than 3 seconds
+        var cutoff = now - 3000;
+        _tapTimes = _tapTimes.Where(t => t >= cutoff).ToList();
+
+        if (_tapTimes.Count > MAX_TAPS)
+            _tapTimes.RemoveAt(0);
+
+        if (_tapTimes.Count >= 2)
+        {
+            var intervals = new List<double>();
+            for (int i = 1; i < _tapTimes.Count; i++)
+                intervals.Add(_tapTimes[i] - _tapTimes[i - 1]);
+            var avgInterval = intervals.Average();
+            _bpm = (int)Math.Round(60000.0 / avgInterval);
+            _bpm = Math.Clamp(_bpm, 20, 300);
+        }
+
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_isRunning) await StopMetronomeAsync();
+        _selfRef?.Dispose();
+    }
+}

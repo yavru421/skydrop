@@ -1,0 +1,174 @@
+@inject IJSRuntime JSRuntime
+@inject IPwaInstallService PwaInstall
+@inject ILocalStorageService LocalStorage
+@implements IAsyncDisposable
+
+@if (_visible)
+{
+    <div class="pwa-backdrop" @onclick="DismissAsync"></div>
+
+    <div class="pwa-sheet @(_isIos ? "ios" : "android")" role="dialog" aria-modal="true" aria-label="Install App">
+
+        <div class="pwa-sheet-handle"></div>
+
+        <div class="pwa-sheet-header">
+            <div class="pwa-warning-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            </div>
+            <div class="pwa-header-text">
+                <h2 class="pwa-title">Install for Full Features</h2>
+                <p class="pwa-subtitle">Lock-screen alerts require the app to be installed on your device.</p>
+            </div>
+        </div>
+
+        @if (_isIos)
+        {
+            <!-- iOS: animated step-by-step guide -->
+            <div class="pwa-steps">
+                <div class="pwa-step" style="animation-delay: 0.05s">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">
+                        <!-- iOS Share icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                            <polyline points="16 6 12 2 8 6"/>
+                            <line x1="12" y1="2" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <div class="step-text">
+                        <strong>Tap the Share button</strong>
+                        <span>The box with an arrow at the bottom of Safari</span>
+                    </div>
+                </div>
+
+                <div class="pwa-step" style="animation-delay: 0.15s">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">
+                        <!-- iOS Add to Home Screen icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                    </div>
+                    <div class="step-text">
+                        <strong>Tap "Add to Home Screen"</strong>
+                        <span>Scroll down the share sheet to find it</span>
+                    </div>
+                </div>
+
+                <div class="pwa-step" style="animation-delay: 0.25s">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">
+                        <!-- Checkmark -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                    <div class="step-text">
+                        <strong>Tap "Add" in the top right</strong>
+                        <span>Then open the app from your Home Screen</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Animated pointer arrow hinting at bottom bar -->
+            <div class="pwa-ios-arrow-hint">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                     stroke="var(--signal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <polyline points="19 12 12 19 5 12"/>
+                </svg>
+            </div>
+        }
+        else
+        {
+            <!-- Android / Chrome: one-click native prompt -->
+            <div class="pwa-android-body">
+                <p class="pwa-android-desc">Add DeciBell Guard to your home screen for instant access and background notification support.</p>
+                <button class="pwa-install-btn" @onclick="TriggerNativePromptAsync">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Install App
+                </button>
+            </div>
+        }
+
+        <div class="pwa-sheet-footer">
+            <button class="pwa-dismiss-btn" @onclick="DismissAsync">Got it, remind me later</button>
+        </div>
+
+    </div>
+}
+
+@code {
+    private bool _visible = false;
+    private bool _isIos = false;
+    private IJSObjectReference? _pwaModule;
+
+    private const string DismissKey = "pwa-install-dismissed";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            // Check if user already dismissed this prompt
+            var dismissed = await LocalStorage.GetItemAsync(DismissKey);
+            if (dismissed == "true") return;
+
+            _pwaModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/pwa.module.js");
+
+            // If already running in standalone, never show
+            var isStandalone = await _pwaModule.InvokeAsync<bool>("isStandalone");
+            if (isStandalone) return;
+
+            _isIos = await _pwaModule.InvokeAsync<bool>("isIos");
+
+            // For Android: only show if native prompt is available
+            // For iOS: always show the instruction sheet
+            if (!_isIos && !PwaInstall.IsInstallable) return;
+
+            _visible = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PwaInstallPrompt] Init error: {ex.Message}");
+        }
+    }
+
+    private async Task TriggerNativePromptAsync()
+    {
+        await PwaInstall.PromptInstallAsync();
+        await DismissAsync();
+    }
+
+    private async Task DismissAsync()
+    {
+        _visible = false;
+        StateHasChanged();
+        await LocalStorage.SetItemAsync(DismissKey, "true");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_pwaModule is not null)
+        {
+            try { await _pwaModule.DisposeAsync(); } catch { }
+        }
+    }
+}

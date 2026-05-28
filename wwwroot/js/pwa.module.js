@@ -65,3 +65,14 @@ export function onInstall(dotNetHelper, callbackName) {
         }
     }
 }
+
+// Returns true when running as an installed PWA (standalone mode)
+export function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+}
+
+// Returns true when the user is on iOS Safari (where beforeinstallprompt is unsupported)
+export function isIos() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}

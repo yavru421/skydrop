@@ -19,3 +19,8 @@ out/
 ## OS files
 .DS_Store
 Thumbs.db
+
+## Agent & Deployment temporary files
+.antigravity/
+output/
+

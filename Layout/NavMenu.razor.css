@@ -70,7 +70,7 @@
     transition: opacity 0.2s ease;
 }
 
-.nav-item {
+::deep .nav-item {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -84,12 +84,12 @@
     border-left: 3px solid transparent;
 }
 
-.nav-item:hover {
+::deep .nav-item:hover {
     color: var(--text);
     background: rgba(255, 255, 255, 0.03);
 }
 
-.nav-item.active {
+::deep .nav-item.active {
     color: var(--signal);
     background: rgba(122, 209, 255, 0.05);
     border-left-color: var(--signal);
@@ -130,14 +130,14 @@
     padding: 0;
 }
 
-.app-sidebar.collapsed .nav-item {
+.app-sidebar.collapsed ::deep .nav-item {
     justify-content: center;
     padding: 12px 0;
     border-left-width: 0;
     border-bottom: 2px solid transparent;
 }
 
-.app-sidebar.collapsed .nav-item.active {
+.app-sidebar.collapsed ::deep .nav-item.active {
     border-bottom-color: var(--signal);
     background: rgba(122, 209, 255, 0.03);
 }

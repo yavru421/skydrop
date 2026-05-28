@@ -1,6 +1,6 @@
 {
-  "name": "BlazorPwaTemplate",
-  "short_name": "BlazorPwaTemplate",
+  "name": "Guitar & Instrument Tuner PWA",
+  "short_name": "TunerPWA",
   "id": "/",
   "start_url": "/",
   "scope": "/",
@@ -21,6 +21,6 @@
       "sizes": "192x192"
     }
   ],
-  "description": "Device Capability Explorer & UI/UX Pattern Library template."
+  "description": "Premium, glassmorphic Guitar & Instrument Tuner and Metronome PWA."
 }
 

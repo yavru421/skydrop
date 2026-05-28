@@ -1,301 +1,325 @@
 @page "/"
-@inject IJSRuntime JSRuntime
-@inject NavigationManager Navigation
+@inject ITunerService TunerService
+@inject IToastService ToastService
+@implements IAsyncDisposable
 
-<PageTitle>Dashboard - GlassWASM PWA Template</PageTitle>
+<PageTitle>Guitar & Instrument Tuner — TunerPWA</PageTitle>
 
-<div class="dashboard-container">
-    <div class="hero-section">
-        <h1 class="hero-title">WebAPI Glassmorphism</h1>
-        <p class="hero-subtitle">A premium Blazor WebAssembly template demonstrating advanced HTML5 Web APIs and modern glassmorphic design systems.</p>
-    </div>
+<div class="tuner-page">
 
-    <h2 class="section-heading">Device & Hardware APIs</h2>
-    <div class="card-grid">
-        <!-- Camera Card -->
-        <div class="api-card" @onclick='() => NavigateTo("device/camera")'>
-            <div class="card-glow camera-glow"></div>
-            <div class="card-header">
-                <span class="card-icon camera-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-                </span>
-                <CapabilityBadge Supported="@_caps["camera"]" FeatureName="Camera" />
-            </div>
-            <h3 class="card-title">Camera & Video</h3>
-            <p class="card-desc">Capture live video stream, switch between front/rear camera lenses, take photos, and download snapshots.</p>
+    <!-- ── Header ─────────────────────────────────────────── -->
+    <div class="tuner-header">
+        <div class="header-brand">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--signal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18V5l12-2v13"/>
+                <circle cx="6" cy="18" r="3"/>
+                <circle cx="18" cy="16" r="3"/>
+            </svg>
+            <h1>TunerPWA</h1>
         </div>
-
-        <!-- Geolocation Card -->
-        <div class="api-card" @onclick='() => NavigateTo("device/geo")'>
-            <div class="card-glow geo-glow"></div>
-            <div class="card-header">
-                <span class="card-icon geo-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                </span>
-                <CapabilityBadge Supported="@_caps["geo"]" FeatureName="Geolocation" />
-            </div>
-            <h3 class="card-title">Geolocation & Map</h3>
-            <p class="card-desc">Track real-time latitude, longitude, and accuracy details mapped using an interactive Leaflet JS widget.</p>
-        </div>
-
-        <!-- Motion Card -->
-        <div class="api-card" @onclick='() => NavigateTo("device/motion")'>
-            <div class="card-glow motion-glow"></div>
-            <div class="card-header">
-                <span class="card-icon motion-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                </span>
-                <CapabilityBadge Supported="@_caps["motion"]" FeatureName="Device Motion" />
-            </div>
-            <h3 class="card-title">Device Motion & Gyro</h3>
-            <p class="card-desc">Read gyroscope, accelerometer, and device tilt coordinates dynamically represented by a 3D CSS wireframe phone.</p>
-        </div>
-
-        <!-- Haptics Card -->
-        <div class="api-card" @onclick='() => NavigateTo("device/haptics")'>
-            <div class="card-glow haptics-glow"></div>
-            <div class="card-header">
-                <span class="card-icon haptics-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M12 6v6"></path><path d="M12 16h.01"></path></svg>
-                </span>
-                <CapabilityBadge Supported="@_caps["haptics"]" FeatureName="Vibration" />
-            </div>
-            <h3 class="card-title">Haptic Feedback</h3>
-            <p class="card-desc">Trigger tactile response patterns (taps, errors, warnings, success, heartbeats) using the client vibration engine.</p>
-        </div>
-
-        <!-- Share Card -->
-        <div class="api-card" @onclick='() => NavigateTo("device/share")'>
-            <div class="card-glow share-glow"></div>
-            <div class="card-header">
-                <span class="card-icon share-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                </span>
-                <CapabilityBadge Supported="@_caps["share"]" FeatureName="Web Share" />
-            </div>
-            <h3 class="card-title">Share & Clipboard</h3>
-            <p class="card-desc">Trigger native OS sharing dialogues for links or text files, and read/write to the system clipboard securely.</p>
-        </div>
-
-        <!-- Notifications Card -->
-        <div class="api-card" @onclick='() => NavigateTo("device/notify")'>
-            <div class="card-glow notify-glow"></div>
-            <div class="card-header">
-                <span class="card-icon notify-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                </span>
-                <CapabilityBadge Supported="@_caps["notify"]" FeatureName="Notification" />
-            </div>
-            <h3 class="card-title">Notifications</h3>
-            <p class="card-desc">Register system notification permissions, launch prompt alerts instantly, or delay alerts for background delivery.</p>
-        </div>
-
-        <!-- Battery Card -->
-        <div class="api-card" @onclick='() => NavigateTo("device/battery")'>
-            <div class="card-glow battery-glow"></div>
-            <div class="card-header">
-                <span class="card-icon battery-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="18" height="12" rx="2" ry="2"></rect><line x1="23" y1="11" x2="23" y2="13"></line></svg>
-                </span>
-                <CapabilityBadge Supported="@_caps["battery"]" FeatureName="Battery Status" />
-            </div>
-            <h3 class="card-title">Battery Status</h3>
-            <p class="card-desc">Monitor charge levels, charging state (plugged in/unplugged), and remaining charge or discharge timers.</p>
-        </div>
-
-        <!-- Media Card -->
-        <div class="api-card" @onclick='() => NavigateTo("device/media")'>
-            <div class="card-glow media-glow"></div>
-            <div class="card-header">
-                <span class="card-icon media-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                </span>
-                <CapabilityBadge Supported="@_caps["media"]" FeatureName="Microphone Media" />
-            </div>
-            <h3 class="card-title">Audio Level Meter</h3>
-            <p class="card-desc">Request microphone permissions to run real-time audio sample frequency checks plotted on a Canvas level meter.</p>
-        </div>
-
-        <!-- Screen Card -->
-        <div class="api-card" @onclick='() => NavigateTo("device/screen")'>
-            <div class="card-glow screen-glow"></div>
-            <div class="card-header">
-                <span class="card-icon screen-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                </span>
-                <CapabilityBadge Supported="@_caps["screen"]" FeatureName="Screen Lock" />
-            </div>
-            <h3 class="card-title">Screen & Wake Lock</h3>
-            <p class="card-desc">Control fullscreen modes, request screen orientation locks, and toggle Wake Lock to prevent displays dimming.</p>
-        </div>
-
-        <!-- Bluetooth Card -->
-        <div class="api-card" @onclick='() => NavigateTo("device/bluetooth")'>
-            <div class="card-glow bluetooth-glow"></div>
-            <div class="card-header">
-                <span class="card-icon bluetooth-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11L12 23V1l5.5 5.5-11 11"></path></svg>
-                </span>
-                <CapabilityBadge Supported="@_caps["bluetooth"]" FeatureName="Bluetooth/NFC" />
-            </div>
-            <h3 class="card-title">Bluetooth & NFC</h3>
-            <p class="card-desc">Interact with surrounding BLE hardware nodes using Bluetooth scanning and read passive tags using WebNFC.</p>
+        <div class="header-controls">
+            <select id="preset-select" class="glass-select" @onchange="OnPresetChanged">
+                @foreach (var preset in _presets)
+                {
+                    <option value="@_presets.IndexOf(preset)">@preset.Instrument — @preset.Name</option>
+                }
+            </select>
         </div>
     </div>
 
-    <h2 class="section-heading">UX & UI Design Patterns</h2>
-    <div class="card-grid">
-        <!-- Theme Card -->
-        <div class="api-card ui" @onclick='() => NavigateTo("ui/theme")'>
-            <div class="card-glow theme-glow"></div>
-            <div class="card-header">
-                <span class="card-icon theme-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M12 18a6 6 0 1 0 0-12v12z"></path></svg>
+    <!-- ── Tuner Dial ──────────────────────────────────────── -->
+    <div class="tuner-dial-section">
+        <div class="tuner-dial @TunerStateClass">
+            <!-- SVG Arc Meter -->
+            <svg class="dial-svg" viewBox="0 0 300 170">
+                <!-- Background arc -->
+                <path class="dial-track" d="M 30 150 A 120 120 0 0 1 270 150" fill="none" stroke-width="10" stroke-linecap="round"/>
+                <!-- Zones -->
+                <path class="dial-zone-flat" d="M 30 150 A 120 120 0 0 1 100 50" fill="none" stroke-width="10" stroke-linecap="round" opacity="0.35"/>
+                <path class="dial-zone-sharp" d="M 200 50 A 120 120 0 0 1 270 150" fill="none" stroke-width="10" stroke-linecap="round" opacity="0.35"/>
+                <path class="dial-zone-center" d="M 130 35 A 120 120 0 0 1 170 35" fill="none" stroke-width="10" stroke-linecap="round"/>
+                <!-- Tick marks -->
+                @for (int i = -5; i <= 5; i++)
+                {
+                    var angle = (i * 16.0) - 90.0; // -80° to +80°
+                    var rad = angle * Math.PI / 180.0;
+                    var cx = 150 + 108 * Math.Cos(rad);
+                    var cy = 150 + 108 * Math.Sin(rad);
+                    var cx2 = 150 + 118 * Math.Cos(rad);
+                    var cy2 = 150 + 118 * Math.Sin(rad);
+                    <line x1="@cx.ToString("F1")" y1="@cy.ToString("F1")"
+                          x2="@cx2.ToString("F1")" y2="@cy2.ToString("F1")"
+                          class="dial-tick @(i == 0 ? "dial-tick-center" : "")"
+                          stroke-width="@(i == 0 ? 2.5 : 1.5)" />
+                }
+                <!-- Needle -->
+                <line class="dial-needle" 
+                      x1="150" y1="150"
+                      x2="@NeedleX.ToString("F1")" y2="@NeedleY.ToString("F1")"
+                      stroke-width="3" stroke-linecap="round"/>
+                <!-- Center dot -->
+                <circle cx="150" cy="150" r="8" class="dial-center-dot"/>
+            </svg>
+
+            <!-- Cents display -->
+            <div class="cents-display">
+                <span class="cents-value @(Math.Abs(_cents) > 50 ? "cents-extreme" : "")">
+                    @(_cents > 0 ? $"+{_cents}" : _cents.ToString())
                 </span>
+                <span class="cents-label">cents</span>
             </div>
-            <h3 class="card-title">Live Themes</h3>
-            <p class="card-desc">Switch settings (System/Dark/Light) and preview changes on interactive color palettes and custom variable tables.</p>
         </div>
 
-        <!-- Transitions Card -->
-        <div class="api-card ui" @onclick='() => NavigateTo("ui/transitions")'>
-            <div class="card-glow transitions-glow"></div>
-            <div class="card-header">
-                <span class="card-icon transitions-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                </span>
+        <!-- ── Note Display ─────────────────────────────────── -->
+        <div class="note-display @TunerStateClass">
+            <span class="detected-note">@_currentNote</span>
+            @if (_currentOctave > 0)
+            {
+                <span class="detected-octave">@_currentOctave</span>
+            }
+            <div class="tune-status-badge @TunerStateClass">
+                @TuneStatusText
             </div>
-            <h3 class="card-title">Transitions</h3>
-            <p class="card-desc">Explore animations (Fades, Slides, Zoom, Scale, Flipping) for transitions on route contents and list containers.</p>
         </div>
 
-        <!-- Surfaces Card -->
-        <div class="api-card ui" @onclick='() => NavigateTo("ui/surfaces")'>
-            <div class="card-glow surfaces-glow"></div>
-            <div class="card-header">
-                <span class="card-icon surfaces-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
-                </span>
+        <!-- ── Frequency readout ─────────────────────────────── -->
+        @if (_currentFrequency > 0)
+        {
+            <div class="freq-display">
+                <span class="freq-value">@_currentFrequency.ToString("F1")</span>
+                <span class="freq-unit">Hz</span>
+                @if (_targetFrequency > 0)
+                {
+                    <span class="freq-target">→ @_targetFrequency.ToString("F1") Hz</span>
+                }
             </div>
-            <h3 class="card-title">Glass Surfaces</h3>
-            <p class="card-desc">Review design specifications of cards (frosted-glass, high-elevation, solid border, and alert states).</p>
-        </div>
-
-        <!-- Sheets Card -->
-        <div class="api-card ui" @onclick='() => NavigateTo("ui/sheets")'>
-            <div class="card-glow sheets-glow"></div>
-            <div class="card-header">
-                <span class="card-icon sheets-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="15" x2="21" y2="15"></line></svg>
-                </span>
-            </div>
-            <h3 class="card-title">Bottom Sheets</h3>
-            <p class="card-desc">Trigger sliding sheets (half-view or full) featuring touch-draggable swipe containers to close dialogs.</p>
-        </div>
-
-        <!-- Gestures Card -->
-        <div class="api-card ui" @onclick='() => NavigateTo("ui/gestures")'>
-            <div class="card-glow gestures-glow"></div>
-            <div class="card-header">
-                <span class="card-icon gestures-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5m-4-1V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v7m8-3V8a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v3m-8-2h-.01M22 13a6 6 0 0 1-6 6H10a6 6 0 0 1-6-6V9a4 4 0 0 1 8 0v2"></path></svg>
-                </span>
-            </div>
-            <h3 class="card-title">Gestures & Pull</h3>
-            <p class="card-desc">Experience mobile touch triggers (Tinder swiping action cards and swipe-down pull-to-refresh containers).</p>
-        </div>
-
-        <!-- Lists Card -->
-        <div class="api-card ui" @onclick='() => NavigateTo("ui/lists")'>
-            <div class="card-glow lists-glow"></div>
-            <div class="card-header">
-                <span class="card-icon lists-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                </span>
-            </div>
-            <h3 class="card-title">Virtual Lists</h3>
-            <p class="card-desc">Scroll infinitely through 10,000 mock items using Virtualize, supporting fast keyword filters and skeletons.</p>
-        </div>
-
-        <!-- Charts Card -->
-        <div class="api-card ui" @onclick='() => NavigateTo("ui/charts")'>
-            <div class="card-glow charts-glow"></div>
-            <div class="card-header">
-                <span class="card-icon charts-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line><line x1="2" y1="20" x2="22" y2="20"></line></svg>
-                </span>
-            </div>
-            <h3 class="card-title">Canvas Charts</h3>
-            <p class="card-desc">Visualize custom metrics on canvas-drawn line graphs, bar charts, and donut segment configurations.</p>
-        </div>
-
-        <!-- Forms Card -->
-        <div class="api-card ui" @onclick='() => NavigateTo("ui/forms")'>
-            <div class="card-glow forms-glow"></div>
-            <div class="card-header">
-                <span class="card-icon forms-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                </span>
-            </div>
-            <h3 class="card-title">Stunning Forms</h3>
-            <p class="card-desc">Check out custom styled input widgets (color, sliders, selects) validated by full EditForm rules.</p>
-        </div>
-
-        <!-- Feedback Card -->
-        <div class="api-card ui" @onclick='() => NavigateTo("ui/feedback")'>
-            <div class="card-glow feedback-glow"></div>
-            <div class="card-header">
-                <span class="card-icon feedback-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                </span>
-            </div>
-            <h3 class="card-title">Feedback & Dialogs</h3>
-            <p class="card-desc">Trigger modals, confirmation dialogs, toast notifications, and preview content-loading skeleton placeholders.</p>
-        </div>
+        }
     </div>
+
+    <!-- ── Instrument Strings ─────────────────────────────── -->
+    @if (_activePreset != null)
+    {
+        <div class="strings-section">
+            <div class="strings-label">@_activePreset.Instrument — @_activePreset.Name</div>
+            <div class="strings-grid">
+                @foreach (var str in _activePreset.Strings)
+                {
+                    var isTarget = IsStringTarget(str);
+                    var isActive = isTarget && _isListening;
+                    <button id="string-btn-@str.Name" class="string-card @(isActive ? "string-active" : "") @(isTarget ? "string-target" : "")"
+                            @onclick="() => PlayStringTone(str)">
+                        <span class="string-number">@str.Name</span>
+                        <span class="string-note">@str.Note<sub>@str.Octave</sub></span>
+                        <span class="string-freq">@str.Frequency.ToString("F1") Hz</span>
+                    </button>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- ── Controls ───────────────────────────────────────── -->
+    <div class="tuner-controls">
+        @if (!_isListening)
+        {
+            <button id="btn-start-tuner" class="btn-tuner-primary" @onclick="StartTunerAsync" disabled="@_isStarting">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+                @(_isStarting ? "Starting..." : "Start Tuner")
+            </button>
+        }
+        else
+        {
+            <button id="btn-stop-tuner" class="btn-tuner-stop" @onclick="StopTunerAsync">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                </svg>
+                Stop Tuner
+            </button>
+        }
+        @if (_isTonePlaying)
+        {
+            <button id="btn-stop-tone" class="btn-tuner-secondary" @onclick="StopToneAsync">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                Stop Tone
+            </button>
+        }
+    </div>
+
+    <!-- ── A4 Calibration ─────────────────────────────────── -->
+    <div class="calibration-row">
+        <label class="calib-label">A4 Reference</label>
+        <input id="a4-slider" type="range" min="430" max="450" step="1" class="glass-slider"
+               @bind="_a4Reference" @bind:event="oninput" @onchange="OnA4Changed"/>
+        <span class="calib-value">@_a4Reference Hz</span>
+        <button class="btn-calib-reset" @onclick="ResetA4">Reset</button>
+    </div>
+
 </div>
 
 @code {
-    private Dictionary<string, bool> _caps = new()
+    private bool _isSupported = true;
+    private bool _isListening = false;
+    private bool _isStarting = false;
+    private bool _isTonePlaying = false;
+
+    // Current reading
+    private string _currentNote = "--";
+    private int _currentOctave = 0;
+    private int _cents = 0;
+    private double _currentFrequency = -1;
+    private double _targetFrequency = 0;
+    private double _rms = 0;
+
+    // Calibration
+    private int _a4Reference = 440;
+
+    // Presets
+    private List<TuningPreset> _presets = new();
+    private TuningPreset? _activePreset;
+    private int _activePresetIndex = 0;
+
+    // JS interop
+    private DotNetObjectReference<object>? _selfRef;
+
+    // ── Needle calculation ───────────────────────────────────
+    private double NeedleAngleDeg => Math.Clamp(_cents, -50, 50) / 50.0 * 80.0; // ±80°
+    private double NeedleX => 150 + 100 * Math.Sin(NeedleAngleDeg * Math.PI / 180.0);
+    private double NeedleY => 150 - 100 * Math.Cos(NeedleAngleDeg * Math.PI / 180.0);
+
+    private string TunerStateClass
     {
-        { "camera", false },
-        { "geo", false },
-        { "motion", false },
-        { "haptics", false },
-        { "share", false },
-        { "notify", false },
-        { "battery", false },
-        { "media", false },
-        { "screen", false },
-        { "bluetooth", false }
-    };
+        get
+        {
+            if (!_isListening || _currentNote == "--") return "";
+            if (Math.Abs(_cents) <= 5) return "state-in-tune";
+            if (Math.Abs(_cents) <= 15) return "state-close";
+            return Math.Sign(_cents) < 0 ? "state-flat" : "state-sharp";
+        }
+    }
+
+    private string TuneStatusText
+    {
+        get
+        {
+            if (!_isListening) return "Start tuner";
+            if (_currentNote == "--") return "Listening...";
+            if (Math.Abs(_cents) <= 5) return "✓ In Tune";
+            if (Math.Abs(_cents) <= 15) return "Almost there";
+            return _cents < 0 ? "▲ Too Flat" : "▼ Too Sharp";
+        }
+    }
+
+    private bool IsStringTarget(InstrumentString s)
+    {
+        return _currentNote == s.Note && Math.Abs(_currentOctave - s.Octave) <= 1
+               && Math.Abs(_cents) <= 30;
+    }
+
+    protected override void OnInitialized()
+    {
+        _presets = TunerService.GetPresets().ToList();
+        _activePreset = _presets.FirstOrDefault();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            try
-            {
-                var module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/capabilities.module.js");
-                var results = await module.InvokeAsync<Dictionary<string, bool>>("checkCapabilities");
-                if (results != null)
-                {
-                    foreach (var key in results.Keys)
-                    {
-                        _caps[key] = results[key];
-                    }
-                    StateHasChanged();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Failed to run capability scans: " + ex.Message);
-            }
+            _isSupported = await TunerService.IsSupportedAsync();
+            StateHasChanged();
         }
     }
 
-    private void NavigateTo(string path)
+    private async Task StartTunerAsync()
     {
-        Navigation.NavigateTo(path);
+        _isStarting = true;
+        StateHasChanged();
+        await Task.Delay(50);
+        try
+        {
+            _selfRef = DotNetObjectReference.Create<object>(this);
+            var ok = await TunerService.StartTunerAsync(_selfRef, nameof(OnTunerReading));
+            if (ok)
+            {
+                _isListening = true;
+                ToastService.Success("Tuner active — play a note!");
+            }
+            else
+            {
+                ToastService.Error("Microphone access denied.");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"Failed to start: {ex.Message}");
+        }
+        _isStarting = false;
+        StateHasChanged();
+    }
+
+    private async Task StopTunerAsync()
+    {
+        await TunerService.StopTunerAsync();
+        _isListening = false;
+        _currentNote = "--";
+        _currentOctave = 0;
+        _cents = 0;
+        _currentFrequency = -1;
+        _targetFrequency = 0;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnTunerReading(System.Text.Json.JsonElement data)
+    {
+        _currentFrequency = data.GetProperty("frequency").GetDouble();
+        _currentNote = data.GetProperty("note").GetString() ?? "--";
+        _currentOctave = data.GetProperty("octave").GetInt32();
+        _cents = data.GetProperty("cents").GetInt32();
+        _rms = data.GetProperty("rms").GetDouble();
+
+        if (data.TryGetProperty("targetFrequency", out var tf))
+            _targetFrequency = tf.GetDouble();
+
+        StateHasChanged();
+    }
+
+    private async Task PlayStringTone(InstrumentString str)
+    {
+        _isTonePlaying = true;
+        StateHasChanged();
+        await TunerService.PlayToneAsync(str.Frequency, "sine");
+    }
+
+    private async Task StopToneAsync()
+    {
+        await TunerService.StopToneAsync();
+        _isTonePlaying = false;
+        StateHasChanged();
+    }
+
+    private void OnPresetChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var idx))
+        {
+            _activePresetIndex = idx;
+            _activePreset = _presets[idx];
+        }
+    }
+
+    private void OnA4Changed(ChangeEventArgs e) => StateHasChanged();
+    private void ResetA4() { _a4Reference = 440; StateHasChanged(); }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_isListening) await StopTunerAsync();
+        if (_isTonePlaying) await StopToneAsync();
+        _selfRef?.Dispose();
     }
 }

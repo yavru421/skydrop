@@ -1,0 +1,386 @@
+/* ============================================================
+   Metronome.razor.css — Glassmorphic Metronome Styles
+   ============================================================ */
+
+.metro-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 1.5rem 1rem 3rem;
+    max-width: 680px;
+    margin: 0 auto;
+    animation: fadeInPage 0.5s ease;
+}
+
+@keyframes fadeInPage {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.metro-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.metro-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--signal) 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+}
+
+/* ── Pendulum ─────────────────────────────────────────────── */
+.pendulum-wrap {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-width: 340px;
+}
+
+.pendulum-housing {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(122, 209, 255, 0.15);
+    border-radius: 24px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+    backdrop-filter: blur(12px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.pendulum-arm {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    width: 4px;
+    height: 140px;
+    background: linear-gradient(to bottom, var(--muted), var(--text));
+    transform-origin: top center;
+    transition: transform 0.25s ease-in-out;
+    margin-left: -2px;
+}
+
+/* Pendulum states */
+.pendulum-center {
+    transform: rotate(0deg);
+}
+
+.pendulum-left {
+    transform: rotate(-25deg);
+}
+
+.pendulum-right {
+    transform: rotate(25deg);
+}
+
+.pendulum-weight {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    background: var(--signal);
+    border-radius: 6px;
+    transform: translateX(-50%);
+    box-shadow: 0 0 10px rgba(122, 209, 255, 0.4);
+    transition: background-color 0.15s, box-shadow 0.15s;
+}
+
+.weight-beat {
+    background: #ff8370;
+    box-shadow: 0 0 15px rgba(255, 131, 112, 0.8);
+}
+
+.weight-accent {
+    background: #2ed573;
+    box-shadow: 0 0 20px rgba(46, 213, 115, 0.9);
+}
+
+.pendulum-base {
+    text-align: center;
+    z-index: 2;
+    background: rgba(10, 15, 30, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.5rem 1.5rem;
+    border-radius: 16px;
+    backdrop-filter: blur(4px);
+}
+
+.bpm-big {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+.bpm-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-top: 0.2rem;
+    text-transform: uppercase;
+}
+
+/* ── Beat Indicators ──────────────────────────────────────── */
+.beat-row {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.beat-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.1s ease;
+}
+
+.beat-active {
+    background: #ff8370;
+    box-shadow: 0 0 10px rgba(255, 131, 112, 0.8);
+    transform: scale(1.2);
+}
+
+.beat-accent {
+    background: #2ed573;
+    box-shadow: 0 0 15px rgba(46, 213, 115, 0.9);
+    transform: scale(1.3);
+}
+
+/* ── BPM Controls ─────────────────────────────────────────── */
+.metro-controls-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    padding: 1.5rem;
+}
+
+.bpm-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.btn-bpm-step {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    font-size: 1.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-bpm-step:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--signal);
+    color: var(--signal);
+}
+
+.metro-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: rgba(122, 209, 255, 0.2);
+    border-radius: 999px;
+    outline: none;
+    cursor: pointer;
+}
+
+.metro-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--signal);
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(122, 209, 255, 0.5);
+    transition: transform 0.15s;
+}
+
+.metro-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+}
+
+.tempo-labels {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 0.25rem;
+}
+
+.tempo-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-weight: 500;
+    transition: color 0.20s;
+}
+
+.tempo-label.tempo-active {
+    color: var(--signal);
+    font-weight: 700;
+}
+
+/* Time Signature */
+.time-sig-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.time-sig-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.time-sig-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-time-sig {
+    padding: 0.45rem 1rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-time-sig:hover {
+    border-color: rgba(122, 209, 255, 0.3);
+    color: var(--text);
+}
+
+.btn-time-sig.sig-active {
+    background: rgba(122, 209, 255, 0.15);
+    border-color: var(--signal);
+    color: var(--signal);
+}
+
+/* ── Play/Stop ────────────────────────────────────────────── */
+.metro-play-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.btn-metro-play {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.9rem 3rem;
+    border-radius: 16px;
+    border: 1px solid rgba(46, 213, 115, 0.4);
+    background: linear-gradient(135deg, rgba(46, 213, 115, 0.25), rgba(46, 213, 115, 0.1));
+    color: #2ed573;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 15px rgba(46, 213, 115, 0.1);
+}
+
+.btn-metro-play:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(46, 213, 115, 0.35), rgba(46, 213, 115, 0.15));
+    box-shadow: 0 8px 25px rgba(46, 213, 115, 0.25);
+}
+
+.btn-metro-stop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.9rem 3rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 131, 112, 0.4);
+    background: linear-gradient(135deg, rgba(255, 131, 112, 0.25), rgba(255, 131, 112, 0.1));
+    color: #ff8370;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 15px rgba(255, 131, 112, 0.1);
+}
+
+.btn-metro-stop:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(255, 131, 112, 0.35), rgba(255, 131, 112, 0.15));
+    box-shadow: 0 8px 25px rgba(255, 131, 112, 0.25);
+}
+
+/* ── Tap Tempo ────────────────────────────────────────────── */
+.btn-tap-tempo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 240px;
+    padding: 0.75rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.btn-tap-tempo:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--text);
+}
+
+.btn-tap-tempo:active {
+    transform: scale(0.97);
+    background: rgba(122, 209, 255, 0.1);
+    border-color: var(--signal);
+    color: var(--signal);
+}
