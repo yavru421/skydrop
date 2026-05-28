@@ -24,5 +24,6 @@ builder.Services.AddScoped<IGestureService, GestureService>();
 
 // Tuner
 builder.Services.AddScoped<ITunerService, TunerService>();
+builder.Services.AddScoped<IStudioService, StudioService>();
 
 await builder.Build().RunAsync();

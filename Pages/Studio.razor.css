@@ -1,0 +1,374 @@
+/* ============================================================
+   Studio.razor.css — Beat Studio Page Styles
+   ============================================================ */
+
+.studio-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem 1rem 3rem;
+    max-width: 960px;
+    margin: 0 auto;
+    animation: fadeInPage 0.5s ease;
+}
+
+@keyframes fadeInPage {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.studio-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-brand h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--signal) 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+}
+
+.studio-global-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btn-studio-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.5rem;
+    border-radius: 12px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+}
+
+.btn-play {
+    border: 1px solid rgba(46, 213, 115, 0.4);
+    background: linear-gradient(135deg, rgba(46, 213, 115, 0.25), rgba(46, 213, 115, 0.1));
+    color: #2ed573;
+    box-shadow: 0 4px 15px rgba(46, 213, 115, 0.1);
+}
+
+.btn-play:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, rgba(46, 213, 115, 0.35), rgba(46, 213, 115, 0.15));
+    box-shadow: 0 6px 20px rgba(46, 213, 115, 0.25);
+}
+
+.btn-stop {
+    border: 1px solid rgba(255, 131, 112, 0.4);
+    background: linear-gradient(135deg, rgba(255, 131, 112, 0.25), rgba(255, 131, 112, 0.1));
+    color: #ff8370;
+    box-shadow: 0 4px 15px rgba(255, 131, 112, 0.1);
+}
+
+.btn-stop:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, rgba(255, 131, 112, 0.35), rgba(255, 131, 112, 0.15));
+    box-shadow: 0 6px 20px rgba(255, 131, 112, 0.25);
+}
+
+.btn-studio-secondary {
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--muted);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-studio-secondary:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.glass-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(122, 209, 255, 0.15);
+    border-radius: 12px;
+    color: var(--text);
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    outline: none;
+}
+
+.glass-select:hover, .glass-select:focus {
+    border-color: var(--signal);
+}
+
+/* ── Settings Row ─────────────────────────────────────────── */
+.studio-settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    padding: 1.25rem 1.5rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.tempo-control {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 250px;
+}
+
+.control-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.control-label strong {
+    color: var(--signal);
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.glass-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: rgba(122, 209, 255, 0.2);
+    border-radius: 999px;
+    outline: none;
+    cursor: pointer;
+}
+
+.glass-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--signal);
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(122, 209, 255, 0.5);
+    transition: transform 0.15s;
+}
+
+.glass-slider::-webkit-slider-thumb:hover { transform: scale(1.25); }
+
+.melody-pencil {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.note-selector-wrap {
+    display: flex;
+    gap: 0.35rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 0.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.btn-note-picker {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-note-picker:hover {
+    color: var(--text);
+}
+
+.btn-note-picker.active {
+    background: var(--signal);
+    color: #11161d;
+    box-shadow: 0 0 10px rgba(122, 209, 255, 0.4);
+}
+
+/* ── Sequencer Grid Matrix ────────────────────────────────── */
+.sequencer-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(122, 209, 255, 0.12);
+    border-radius: 24px;
+    padding: 1.5rem;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+    backdrop-filter: blur(16px);
+    overflow-x: auto;
+}
+
+.playhead-track {
+    display: flex;
+    margin-bottom: 0.75rem;
+}
+
+.track-info-spacer {
+    width: 140px;
+    flex-shrink: 0;
+}
+
+.steps-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-grow: 1;
+}
+
+.playhead-dot {
+    flex: 1;
+    min-width: 32px;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.04);
+    transition: background-color 0.08s;
+}
+
+.playhead-dot.active {
+    background: var(--signal);
+    box-shadow: 0 0 12px var(--signal);
+}
+
+.grid-matrix {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.matrix-row {
+    display: flex;
+    align-items: center;
+}
+
+.track-label {
+    width: 140px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.track-icon {
+    font-size: 1.1rem;
+}
+
+.step-btn {
+    flex: 1;
+    min-width: 32px;
+    height: 48px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    transition: all 0.12s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.step-btn:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Coloring steps based on track */
+.matrix-row:nth-child(1) .step-btn.active {
+    background: #ff5e3a; /* Kick - red/orange */
+    border-color: #ff5e3a;
+    box-shadow: 0 0 15px rgba(255, 94, 58, 0.55);
+}
+
+.matrix-row:nth-child(2) .step-btn.active {
+    background: #a78bfa; /* Snare - purple */
+    border-color: #a78bfa;
+    box-shadow: 0 0 15px rgba(167, 139, 250, 0.55);
+}
+
+.matrix-row:nth-child(3) .step-btn.active {
+    background: var(--signal); /* Hats - blue */
+    border-color: var(--signal);
+    box-shadow: 0 0 15px rgba(122, 209, 255, 0.55);
+}
+
+.matrix-row:nth-child(4) .step-btn.active {
+    background: #ffb82b; /* Clap - yellow */
+    border-color: #ffb82b;
+    box-shadow: 0 0 15px rgba(255, 184, 43, 0.55);
+}
+
+.matrix-row:nth-child(5) .step-btn.active {
+    background: #2ed573; /* Melody - green */
+    border-color: #2ed573;
+    box-shadow: 0 0 15px rgba(46, 213, 115, 0.55);
+}
+
+/* Playhead overlays */
+.step-btn.playhead::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.18);
+    box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.4);
+    pointer-events: none;
+}
+
+.melody-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #11161d;
+    background: rgba(255,255,255,0.85);
+    padding: 0.1rem 0.25rem;
+    border-radius: 4px;
+}
+
+/* Step phrasing highlight (every 4 steps highlight beats) */
+.step-btn:nth-child(4n+1) {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+.step-btn:nth-child(4n+1):hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .studio-header { flex-direction: column; align-items: flex-start; }
+    .studio-settings-row { flex-direction: column; align-items: stretch; }
+    .melody-pencil { width: 100%; justify-content: space-between; }
+}
