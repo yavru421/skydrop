@@ -27,48 +27,115 @@
         </div>
     </div>
 
-    <!-- ── Tuner Dial ──────────────────────────────────────── -->
-    <div class="tuner-dial-section">
-        <div class="tuner-dial @TunerStateClass">
-            <!-- SVG Arc Meter -->
-            <svg class="dial-svg" viewBox="0 0 300 170">
-                <!-- Background arc -->
-                <path class="dial-track" d="M 30 150 A 120 120 0 0 1 270 150" fill="none" stroke-width="10" stroke-linecap="round"/>
-                <!-- Zones -->
-                <path class="dial-zone-flat" d="M 30 150 A 120 120 0 0 1 100 50" fill="none" stroke-width="10" stroke-linecap="round" opacity="0.35"/>
-                <path class="dial-zone-sharp" d="M 200 50 A 120 120 0 0 1 270 150" fill="none" stroke-width="10" stroke-linecap="round" opacity="0.35"/>
-                <path class="dial-zone-center" d="M 130 35 A 120 120 0 0 1 170 35" fill="none" stroke-width="10" stroke-linecap="round"/>
-                <!-- Tick marks -->
-                @for (int i = -5; i <= 5; i++)
-                {
-                    var angle = (i * 16.0) - 90.0; // -80° to +80°
-                    var rad = angle * Math.PI / 180.0;
-                    var cx = 150 + 108 * Math.Cos(rad);
-                    var cy = 150 + 108 * Math.Sin(rad);
-                    var cx2 = 150 + 118 * Math.Cos(rad);
-                    var cy2 = 150 + 118 * Math.Sin(rad);
-                    <line x1="@cx.ToString("F1")" y1="@cy.ToString("F1")"
-                          x2="@cx2.ToString("F1")" y2="@cy2.ToString("F1")"
-                          class="dial-tick @(i == 0 ? "dial-tick-center" : "")"
-                          stroke-width="@(i == 0 ? 2.5 : 1.5)" />
-                }
-                <!-- Needle -->
-                <line class="dial-needle" 
-                      x1="150" y1="150"
-                      x2="@NeedleX.ToString("F1")" y2="@NeedleY.ToString("F1")"
-                      stroke-width="3" stroke-linecap="round"/>
-                <!-- Center dot -->
-                <circle cx="150" cy="150" r="8" class="dial-center-dot"/>
-            </svg>
+    <!-- ── Tuner Controls & View Toggle ────────────────────── -->
+    <div class="view-selector-container">
+        <button id="view-btn-cosmic" class="btn-view @(_currentView == TunerView.Cosmic ? "active" : "")" @onclick="() => SetView(TunerView.Cosmic)">Cosmic Ring</button>
+        <button id="view-btn-laser" class="btn-view @(_currentView == TunerView.Laser ? "active" : "")" @onclick="() => SetView(TunerView.Laser)">Laser String</button>
+        <button id="view-btn-strobe" class="btn-view @(_currentView == TunerView.Strobe ? "active" : "")" @onclick="() => SetView(TunerView.Strobe)">Strobe Wheel</button>
+    </div>
 
-            <!-- Cents display -->
+    <!-- ── Tuner Visualizer ────────────────────────────────── -->
+    <div class="tuner-dial-section">
+        @if (_currentView == TunerView.Cosmic)
+        {
+            <div class="cosmic-tuner @TunerStateClass" style="--rms-scale: @(1.0 + _rms * 1.5)">
+                <svg class="cosmic-svg" viewBox="0 0 300 300">
+                    <defs>
+                        <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="var(--signal)" stop-opacity="0.3" />
+                            <stop offset="100%" stop-color="var(--signal)" stop-opacity="0" />
+                        </radialGradient>
+                    </defs>
+                    
+                    <!-- Background gravity waves -->
+                    <circle cx="150" cy="150" r="120" class="gravity-ring r-outer" />
+                    <circle cx="150" cy="150" r="90" class="gravity-ring r-mid" />
+                    <circle cx="150" cy="150" r="60" class="gravity-ring r-inner" />
+                    
+                    <!-- Pulsating audio glow -->
+                    @if (_isListening && _rms > 0.01)
+                    {
+                        <circle cx="150" cy="150" r="@(60 + _rms * 120)" fill="url(#glowGrad)" />
+                    }
+                    
+                    <!-- Orbital target line -->
+                    <line x1="150" y1="30" x2="150" y2="270" class="target-axis" />
+                    <line x1="30" y1="150" x2="270" y2="150" class="target-axis" />
+                    
+                    <!-- The satellite orbital node -->
+                    <circle cx="@CosmicSatelliteX.ToString("F1")" cy="@CosmicSatelliteY.ToString("F1")" r="12" class="satellite-node @TunerStateClass" />
+                    
+                    <!-- Center Core -->
+                    <circle cx="150" cy="150" r="40" class="core-planet @TunerStateClass" />
+                    <text x="150" y="158" class="core-text">@_currentNote</text>
+                </svg>
+            </div>
+        }
+        else if (_currentView == TunerView.Laser)
+        {
+            <div class="laser-tuner @TunerStateClass">
+                <svg class="laser-svg" viewBox="0 0 300 180">
+                    <!-- Laser lock grid lines -->
+                    <line x1="150" y1="10" x2="150" y2="170" class="laser-centerline" />
+                    <line x1="75" y1="10" x2="75" y2="170" class="laser-guideline" opacity="0.15" />
+                    <line x1="225" y1="10" x2="225" y2="170" class="laser-guideline" opacity="0.15" />
+                    
+                    <!-- Vibrating string curve -->
+                    <path d="@GetLaserStringPath()" class="laser-string @TunerStateClass" />
+                    
+                    <!-- Laser cursor node representing exact pitch location -->
+                    @if (_isListening && _currentNote != "--")
+                    {
+                        <circle cx="@LaserCursorX.ToString("F1")" cy="@LaserCursorY.ToString("F1")" r="8" class="laser-cursor @TunerStateClass" />
+                        <line x1="@LaserCursorX.ToString("F1")" y1="@LaserCursorY.ToString("F1")" x2="@LaserCursorX.ToString("F1")" y2="170" class="laser-cursor-guide @TunerStateClass" stroke-dasharray="3 3" />
+                    }
+                </svg>
+                <div class="laser-reading @TunerStateClass">
+                    <span class="laser-note">@_currentNote</span>
+                    <span class="laser-cents">@(_cents > 0 ? $"+{_cents}" : _cents.ToString()) cents</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="strobe-tuner @TunerStateClass">
+                <div class="strobe-wheel-container">
+                    <div class="strobe-wheel @StrobeDirectionClass" style="@StrobeSpeedStyle">
+                        <!-- Render rotation markers -->
+                        <svg class="strobe-svg" viewBox="0 0 200 200">
+                            <circle cx="100" cy="100" r="90" class="strobe-track" fill="none" stroke-width="6" />
+                            @for (int i = 0; i < 24; i++)
+                            {
+                                var angle = i * (360.0 / 24.0);
+                                <line x1="100" y1="10" x2="100" y2="20" class="strobe-marker" transform="rotate(@angle 100 100)" />
+                            }
+                            <circle cx="100" cy="100" r="70" class="strobe-track-inner" fill="none" stroke-width="4" />
+                            @for (int i = 0; i < 16; i++)
+                            {
+                                var angle = (i * (360.0 / 16.0)) + 11.25;
+                                <line x1="100" y1="30" x2="100" y2="38" class="strobe-marker" transform="rotate(@angle 100 100)" />
+                            }
+                        </svg>
+                    </div>
+                    <!-- Core pitch indicator in the center of the wheel -->
+                    <div class="strobe-core @TunerStateClass">
+                        <span class="strobe-note">@_currentNote</span>
+                        <span class="strobe-cents">@(_cents > 0 ? $"+{_cents}" : _cents.ToString())</span>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- ── Common Cents Display ────────────────────────── -->
+        @if (_currentView != TunerView.Laser && _currentView != TunerView.Strobe)
+        {
             <div class="cents-display">
                 <span class="cents-value @(Math.Abs(_cents) > 50 ? "cents-extreme" : "")">
                     @(_cents > 0 ? $"+{_cents}" : _cents.ToString())
                 </span>
                 <span class="cents-label">cents</span>
             </div>
-        </div>
+        }
 
         <!-- ── Note Display ─────────────────────────────────── -->
         <div class="note-display @TunerStateClass">
@@ -187,10 +254,47 @@
     // JS interop
     private DotNetObjectReference<object>? _selfRef;
 
-    // ── Needle calculation ───────────────────────────────────
-    private double NeedleAngleDeg => Math.Clamp(_cents, -50, 50) / 50.0 * 80.0; // ±80°
-    private double NeedleX => 150 + 100 * Math.Sin(NeedleAngleDeg * Math.PI / 180.0);
-    private double NeedleY => 150 - 100 * Math.Cos(NeedleAngleDeg * Math.PI / 180.0);
+    private enum TunerView
+    {
+        Cosmic,
+        Laser,
+        Strobe
+    }
+
+    private TunerView _currentView = TunerView.Cosmic;
+    private void SetView(TunerView view) => _currentView = view;
+
+    // ── Cosmic View Calculation ──────────────────────────────
+    private double CosmicSatelliteAngleRad => (_cents / 50.0) * (Math.PI * 0.75) - (Math.PI / 2.0); // angle centered at -90deg (top)
+    private double CosmicSatelliteX => 150 + 105 * Math.Cos(CosmicSatelliteAngleRad);
+    private double CosmicSatelliteY => 150 + 105 * Math.Sin(CosmicSatelliteAngleRad);
+
+    // ── Laser View Calculation ───────────────────────────────
+    private double LaserCursorX => 150 + (_cents / 50.0) * 120.0; // range 30 to 270
+    private double LaserCursorY => 90 - (Math.Sin((LaserCursorX - 20) / 260.0 * Math.PI) * Math.Min(25, _rms * 250.0));
+
+    private string GetLaserStringPath()
+    {
+        if (!_isListening || _rms < 0.005)
+            return "M 20 90 L 280 90";
+
+        double amp = Math.Min(25, _rms * 250.0);
+        // String curves dynamically based on vibration and frequency alignment
+        return $"M 20 90 Q 150 {90 - amp} 280 90";
+    }
+
+    // ── Strobe View Calculation ──────────────────────────────
+    private string StrobeDirectionClass => Math.Abs(_cents) <= 2 ? "strobe-locked" : (_cents > 0 ? "strobe-clockwise" : "strobe-counter");
+    private string StrobeSpeedStyle
+    {
+        get
+        {
+            if (Math.Abs(_cents) <= 2)
+                return "animation-duration: 0s; animation-play-state: paused;";
+            double duration = Math.Max(0.2, 8.0 / Math.Abs(_cents));
+            return $"animation-duration: {duration.ToString("F2")}s;";
+        }
+    }
 
     private string TunerStateClass
     {
