@@ -16,13 +16,20 @@
             </svg>
             <div>
                 <h1>Beatmaker Studio</h1>
-                <span class="sub-label">A&amp;H SQ-6 Tactile Loop Engine</span>
+                <span class="sub-label text-high-contrast">A&amp;H SQ-6 Tactile Loop Engine</span>
             </div>
         </div>
         
         <div class="studio-global-controls">
             @if (_projectInitialized)
             {
+                <!-- Playback Monitor HUD -->
+                <div class="playback-monitor-hud">
+                    <span class="hud-indicator @(_isPlaying ? "glowing-active" : "")">●</span>
+                    <span class="hud-vibe">VIBE: @(_selectedTemplate.ToUpper())</span>
+                    <span class="hud-tracks">ACTIVE: @GetPlayingTracksSummary()</span>
+                </div>
+
                 <div class="global-setting-pill">
                     <span class="pill-label">BPM</span>
                     <input type="number" min="60" max="200" class="bpm-input" @bind="_state.Bpm" @bind:after="UpdateAudioEngineState" />
@@ -88,17 +95,17 @@
                         <div class="template-card @(_selectedTemplate == "dre" ? "active" : "")" @onclick='() => SelectTemplate("dre")'>
                             <span class="template-icon">🎧</span>
                             <span class="template-name">West Coast Boom</span>
-                            <span class="template-desc">Inspired by Dre. High whistle, crisp guitar stabs, punchy acoustic drums.</span>
+                            <span class="template-desc text-high-contrast">Inspired by Dre. High whistle, crisp guitar stabs, punchy acoustic drums.</span>
                         </div>
                         <div class="template-card @(_selectedTemplate == "gorillaz" ? "active" : "")" @onclick='() => SelectTemplate("gorillaz")'>
                             <span class="template-icon">🎸</span>
                             <span class="template-name">Resonant Dub Vibe</span>
-                            <span class="template-desc">Inspired by Gorillaz. Melodica lead, sub-wobble bass, vintage drum rimshots.</span>
+                            <span class="template-desc text-high-contrast">Inspired by Gorillaz. Melodica lead, sub-wobble bass, vintage drum rimshots.</span>
                         </div>
                         <div class="template-card @(_selectedTemplate == "blank" ? "active" : "")" @onclick='() => SelectTemplate("blank")'>
                             <span class="template-icon">🎛️</span>
                             <span class="template-name">Empty Slate</span>
-                            <span class="template-desc">Completely empty sequencer grid and default fader alignments.</span>
+                            <span class="template-desc text-high-contrast">Completely empty sequencer grid and default fader alignments.</span>
                         </div>
                     </div>
                 </div>
@@ -108,7 +115,7 @@
                     <h3>2. Project Pitch & Tempo</h3>
                     <div class="params-row">
                         <div class="param-input-group">
-                            <span class="control-label">BPM (Tempo):</span>
+                            <span class="control-label text-high-contrast">BPM (Tempo):</span>
                             <div class="bpm-slider-wrap">
                                 <input type="range" min="60" max="180" @bind="_builderBpm" @bind:event="oninput" class="glass-slider" />
                                 <span class="param-val">@_builderBpm BPM</span>
@@ -116,7 +123,7 @@
                         </div>
 
                         <div class="param-input-group">
-                            <span class="control-label">Root Key:</span>
+                            <span class="control-label text-high-contrast">Root Key:</span>
                             <select class="glass-select" @bind="_builderKey">
                                 @foreach (var k in _keys)
                                 {
@@ -126,7 +133,7 @@
                         </div>
 
                         <div class="param-input-group">
-                            <span class="control-label">Scale:</span>
+                            <span class="control-label text-high-contrast">Scale:</span>
                             <select class="glass-select" @bind="_builderScale">
                                 <option value="Minor">Natural Minor</option>
                                 <option value="Major">Natural Major</option>
@@ -145,206 +152,229 @@
     }
     else
     {
-        <!-- ── MASTER CONSOLE VIEW ────────────────────────────── -->
-        
-        <!-- Chords Selection Strip -->
-        <div class="studio-card chords-card animate-fade">
-            <div class="chords-header">
-                <h3>🎹 CHORD SEQUENCER BACKING</h3>
-                <span class="chords-subtitle">Chord auto-triggers on beats 1 &amp; 9. Click to audition &amp; lock next chord.</span>
-            </div>
-            <div class="chords-row">
-                @for (int i = 0; i < 8; i++)
-                {
-                    var idx = i;
-                    var chord = _state.Chords[idx];
-                    var isActive = _state.ActiveChordIndex == idx;
-
-                    <div class="chord-cell @(isActive ? "active" : "")">
-                        <button class="chord-btn" @onclick="() => TriggerChordPad(idx)">
-                            <span class="chord-label">STEP @(idx + 1)</span>
-                            <span class="chord-val">@(chord == "none" ? "--" : chord)</span>
-                        </button>
-                        <div class="chord-octaves">
-                            <button class="btn-oct" @onclick="() => AdjustOctave(idx, 1)">▲</button>
-                            <button class="btn-oct" @onclick="() => AdjustOctave(idx, -1)">▼</button>
-                        </div>
-                    </div>
-                }
-            </div>
+        <!-- Tabbed Navigation Bar -->
+        <div class="studio-tabs-nav">
+            <button class="tab-nav-btn @(_activeTab == "mixer" ? "active" : "")" @onclick='() => SetTab("mixer")'>🎛️ Mixer Desk</button>
+            <button class="tab-nav-btn @(_activeTab == "ribbon" ? "active" : "")" @onclick='() => SetTab("ribbon")'>🎵 Melody Ribbon</button>
+            <button class="tab-nav-btn @(_activeTab == "sequencer" ? "active" : "")" @onclick='() => SetTab("sequencer")'>🎹 Step Sequencer</button>
         </div>
 
-        <!-- 5-Channel Tactile Mixer Console -->
-        <div class="studio-card mixer-card animate-fade">
-            <div class="mixer-console-desk">
-                @for (int t = 0; t < 5; t++)
-                {
-                    var trackIndex = t;
-                    var isArmed = _selectedTrack == trackIndex;
-                    var trackColor = _trackColors[trackIndex];
-                    var trackName = _trackNames[trackIndex];
+        @if (_activeTab == "mixer")
+        {
+            <!-- Chords Selection Strip -->
+            <div class="studio-card chords-card animate-fade">
+                <div class="chords-header">
+                    <h3>🎹 CHORD SEQUENCER BACKING</h3>
+                    <span class="chords-subtitle text-high-contrast">Chord auto-triggers on beats 1 &amp; 9. Click to audition &amp; lock next chord.</span>
+                </div>
+                <div class="chords-row">
+                    @for (int i = 0; i < 8; i++)
+                    {
+                        var idx = i;
+                        var chord = _state.Chords[idx];
+                        var isActive = _state.ActiveChordIndex == idx;
 
-                    <div class="channel-strip @(isArmed ? "armed" : "")" style="--track-color: @trackColor">
-                        
-                        <!-- LCD Header Screen -->
-                        <div class="channel-lcd">
-                            <span class="lcd-number">CH 0@(trackIndex + 1)</span>
-                            <span class="lcd-name">@trackName.ToUpper()</span>
-                            <span class="lcd-preset">@GetPresetLabel(trackIndex, _state.TonePreset[trackIndex])</span>
-                        </div>
-
-                        <!-- Arm / Select Button -->
-                        <button class="btn-channel-arm @(isArmed ? "active" : "")" @onclick="() => SelectTrack(trackIndex)">
-                            SEL / ARM
-                        </button>
-
-                        <!-- Knobs/Sliders Area -->
-                        <div class="channel-knobs">
-                            <div class="knob-row">
-                                <span class="knob-label">TONE MORPH</span>
-                                <input type="range" min="0" max="1" step="0.01" class="strip-slider" 
-                                       @bind="_state.TonePreset[trackIndex]" @bind:event="oninput" @onchange="UpdateAudioEngineState" />
-                            </div>
-
-                            <div class="knob-row">
-                                <span class="knob-label">PITCH</span>
-                                <input type="range" min="0" max="1" step="0.01" class="strip-slider" 
-                                       @bind="_state.Pitch[trackIndex]" @bind:event="oninput" @onchange="UpdateAudioEngineState" />
-                            </div>
-
-                            <div class="knob-row">
-                                <span class="knob-label">DECAY</span>
-                                <input type="range" min="0" max="1" step="0.01" class="strip-slider" 
-                                       @bind="_state.Decay[trackIndex]" @bind:event="oninput" @onchange="UpdateAudioEngineState" />
-                            </div>
-                        </div>
-
-                        <!-- Volume Fader -->
-                        <div class="channel-fader-container">
-                            <div class="fader-db-scale">
-                                <span>+10</span>
-                                <span>0</span>
-                                <span>-6</span>
-                                <span>-12</span>
-                                <span>-24</span>
-                                <span>-∞</span>
-                            </div>
-                            <div class="fader-track-wrapper">
-                                <input type="range" min="0" max="1" step="0.01" class="strip-fader" 
-                                       @bind="_state.Volume[trackIndex]" @bind:event="oninput" @onchange="UpdateAudioEngineState" />
-                            </div>
-                        </div>
-
-                        <!-- Tap-Record Pad -->
-                        <div class="channel-pad-wrapper">
-                            <button class="btn-tap-pad @(_isPlaying && _currentStep % 4 == 0 ? "beat-flash" : "")" 
-                                    @onclick="() => TriggerTap(trackIndex)"
-                                    @onmousedown="() => TriggerTap(trackIndex)"
-                                    style="--pad-color: @trackColor">
-                                <span class="pad-txt">TAP</span>
+                        <div class="chord-cell @(isActive ? "active" : "")">
+                            <button class="chord-btn" @onclick="() => TriggerChordPad(idx)">
+                                <span class="chord-label">STEP @(idx + 1)</span>
+                                <span class="chord-val">@(chord == "none" ? "--" : chord)</span>
                             </button>
+                            <div class="chord-octaves">
+                                <button class="btn-oct" @onclick="() => AdjustOctave(idx, 1)">▲</button>
+                                <button class="btn-oct" @onclick="() => AdjustOctave(idx, -1)">▼</button>
+                            </div>
                         </div>
-                    </div>
-                }
+                    }
+                </div>
             </div>
-        </div>
 
-        <!-- Horizontal Ribbon Controller (Scale-Locked Pitch Slide) -->
-        <div class="studio-card ribbon-card @((_selectedTrack == 3 || _selectedTrack == 4) ? "visible" : "hidden") animate-fade">
-            <div class="ribbon-header">
-                <h3>🎛️ SCALE-LOCKED RIBBON PLAYPAD — @(_selectedTrack == 3 ? "BASS LINE" : "LEAD SYNTH")</h3>
-                <span class="ribbon-note-display">
-                    Active Scale: <strong>@_state.Key @_state.Scale</strong> | 
-                    Pitch: <strong style="color: var(--neon-blue)">@GetNoteNameFromFrequency(_selectedTrack == 3 ? _activeBassFrequency : _activeLeadFrequency)</strong> (@((_selectedTrack == 3 ? _activeBassFrequency : _activeLeadFrequency).ToString("0.0")) Hz)
-                </span>
-            </div>
-            
-            <div class="ribbon-strip-wrapper">
-                <div @ref="_ribbonRef" class="ribbon-strip">
-                    @{
-                        var currentFrequencies = _selectedTrack == 3 ? _bassScaleFrequencies : _leadScaleFrequencies;
-                        var activeFreq = _selectedTrack == 3 ? _activeBassFrequency : _activeLeadFrequency;
-                        if (currentFrequencies != null)
-                        {
-                            for (int i = 0; i < currentFrequencies.Count; i++)
-                            {
-                                var f = currentFrequencies[i];
-                                var name = GetNoteNameFromFrequency(f);
-                                var isCurrent = Math.Abs(activeFreq - f) < 1.0;
-                                <div class="ribbon-node @(isCurrent ? "active-node" : "")" style="width: @(100.0 / currentFrequencies.Count)%;">
-                                    <span class="node-label">@name</span>
+            <!-- 5-Channel Tactile Mixer Console -->
+            <div class="studio-card mixer-card animate-fade">
+                <div class="mixer-console-desk">
+                    @for (int t = 0; t < 5; t++)
+                    {
+                        var trackIndex = t;
+                        var isArmed = _selectedTrack == trackIndex;
+                        var trackColor = _trackColors[trackIndex];
+                        var trackName = _trackNames[trackIndex];
+
+                        <div class="channel-strip @(isArmed ? "armed" : "")" style="--track-color: @trackColor">
+                            
+                            <!-- LCD Header Screen -->
+                            <div class="channel-lcd">
+                                <span class="lcd-number">CH 0@(trackIndex + 1)</span>
+                                <span class="lcd-name">@trackName.ToUpper()</span>
+                                <span class="lcd-preset">@GetPresetLabel(trackIndex, _state.TonePreset[trackIndex])</span>
+                            </div>
+
+                            <!-- Arm / Select Button -->
+                            <button class="btn-channel-arm @(isArmed ? "active" : "")" @onclick="() => SelectTrack(trackIndex)">
+                                @(isArmed ? "ARMED" : "SEL / ARM")
+                            </button>
+
+                            <!-- Knobs/Sliders Area -->
+                            <div class="channel-knobs">
+                                <div class="knob-row">
+                                    <span class="knob-label text-high-contrast">TONE MORPH</span>
+                                    <input type="range" min="0" max="1" step="0.01" class="strip-slider" 
+                                           @bind="_state.TonePreset[trackIndex]" @bind:event="oninput" @onchange="UpdateAudioEngineState" />
                                 </div>
+
+                                <div class="knob-row">
+                                    <span class="knob-label text-high-contrast">PITCH</span>
+                                    <input type="range" min="0" max="1" step="0.01" class="strip-slider" 
+                                           @bind="_state.Pitch[trackIndex]" @bind:event="oninput" @onchange="UpdateAudioEngineState" />
+                                </div>
+
+                                <div class="knob-row">
+                                    <span class="knob-label text-high-contrast">DECAY</span>
+                                    <input type="range" min="0" max="1" step="0.01" class="strip-slider" 
+                                           @bind="_state.Decay[trackIndex]" @bind:event="oninput" @onchange="UpdateAudioEngineState" />
+                                </div>
+                            </div>
+
+                            <!-- Volume Fader -->
+                            <div class="channel-fader-container">
+                                <div class="fader-db-scale">
+                                    <span>+10</span>
+                                    <span>0</span>
+                                    <span>-6</span>
+                                    <span>-12</span>
+                                    <span>-24</span>
+                                    <span>-∞</span>
+                                </div>
+                                <div class="fader-track-wrapper">
+                                    <input type="range" min="0" max="1" step="0.01" class="strip-fader" 
+                                           @bind="_state.Volume[trackIndex]" @bind:event="oninput" @onchange="UpdateAudioEngineState" />
+                                </div>
+                            </div>
+
+                            <!-- Tap-Record Pad -->
+                            <div class="channel-pad-wrapper">
+                                <button class="btn-tap-pad @(_isPlaying && _currentStep % 4 == 0 ? "beat-flash" : "")" 
+                                        @onclick="() => TriggerTap(trackIndex)"
+                                        @onmousedown="() => TriggerTap(trackIndex)"
+                                        style="--pad-color: @trackColor">
+                                    <span class="pad-txt">TAP</span>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else if (_activeTab == "ribbon")
+        {
+            <!-- Horizontal Ribbon Controller (Scale-Locked Pitch Slide) -->
+            <div class="studio-card ribbon-card visible animate-fade">
+                <div class="ribbon-header">
+                    <h3>🎛️ SCALE-LOCKED RIBBON PLAYPAD — @(_selectedTrack == 3 ? "BASS LINE" : "LEAD SYNTH")</h3>
+                    <div class="ribbon-track-picker">
+                        <button class="picker-btn @(_selectedTrack == 3 ? "active" : "")" @onclick="() => SelectTrack(3)">🎸 BASS LINE</button>
+                        <button class="picker-btn @(_selectedTrack == 4 ? "active" : "")" @onclick="() => SelectTrack(4)">🎹 LEAD SYNTH</button>
+                    </div>
+                    <span class="ribbon-note-display text-high-contrast">
+                        Active Scale: <strong>@_state.Key @_state.Scale</strong> | 
+                        Pitch: <strong style="color: var(--neon-blue)">@GetNoteNameFromFrequency(_selectedTrack == 3 ? _activeBassFrequency : _activeLeadFrequency)</strong> (@((_selectedTrack == 3 ? _activeBassFrequency : _activeLeadFrequency).ToString("0.0")) Hz)
+                    </span>
+                </div>
+                
+                <div class="ribbon-strip-wrapper">
+                    <div @ref="_ribbonRef" class="ribbon-strip">
+                        @{
+                            var currentFrequencies = _selectedTrack == 3 ? _bassScaleFrequencies : _leadScaleFrequencies;
+                            var activeFreq = _selectedTrack == 3 ? _activeBassFrequency : _activeLeadFrequency;
+                            if (currentFrequencies != null)
+                            {
+                                for (int i = 0; i < currentFrequencies.Count; i++)
+                                {
+                                    var f = currentFrequencies[i];
+                                    var name = GetNoteNameFromFrequency(f);
+                                    var isCurrent = Math.Abs(activeFreq - f) < 1.0;
+                                    <div class="ribbon-node @(isCurrent ? "active-node" : "")" style="width: @(100.0 / currentFrequencies.Count)%;">
+                                        <span class="node-label">@name</span>
+                                    </div>
+                                }
                             }
                         }
-                    }
-                </div>
-            </div>
-            <p class="ribbon-instruction">Drag, click, or slide across the bar to perform glide melodies with zero latency. While playing, it records notes onto the active sequencer grid step!</p>
-        </div>
-
-        <!-- 16-Step Grid Sequencer Dashboard -->
-        <div class="studio-card sequencer-card animate-fade">
-            <div class="sequencer-header">
-                <h3>🎛️ 16-STEP SEQUENCER DASHBOARD</h3>
-                <span class="sequencer-subtitle">Click blocks to override notes manually. Pinned items have solid colors; glowing playhead indicates sequence position.</span>
-            </div>
-
-            <!-- Playhead indicator row -->
-            <div class="playhead-track">
-                <div class="track-label-spacer"></div>
-                <div class="steps-row">
-                    @for (int s = 0; s < 16; s++)
-                    {
-                        var step = s;
-                        <div class="playhead-dot @(step == _currentStep && _isPlaying ? "active" : "")">
-                            <span class="step-tick-num">@(step + 1)</span>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <!-- Grid Matrix -->
-            <div class="grid-matrix">
-                @for (int t = 0; t < 5; t++)
-                {
-                    var trackIndex = t;
-                    var trackName = _trackNames[trackIndex];
-                    var trackColor = _trackColors[trackIndex];
-                    
-                    <div class="matrix-row">
-                        <div class="track-label">
-                            <span class="track-icon">@_trackIcons[trackIndex]</span>
-                            <span class="track-name">@trackName</span>
-                        </div>
-                        <div class="steps-row">
-                            @for (int s = 0; s < 16; s++)
-                            {
-                                var stepIndex = s;
-                                var isActive = _state.Grid[trackIndex][stepIndex];
-                                var isPinned = _pinned[trackIndex][stepIndex];
-                                var isPlayhead = stepIndex == _currentStep && _isPlaying;
-                                
-                                <button class="step-btn @(isActive ? "active" : "") @(isPinned ? "pinned" : "ghosted") @(isPlayhead ? "playhead" : "")"
-                                        style="--track-color: @trackColor"
-                                        @onclick="() => HandleStepClick(trackIndex, stepIndex)">
-                                    @if (isActive)
-                                    {
-                                        if (trackIndex == 3)
-                                        {
-                                            <span class="melody-label">@GetNoteNameFromFrequency(_state.BassNotes[stepIndex])</span>
-                                        }
-                                        else if (trackIndex == 4)
-                                        {
-                                            <span class="melody-label">@GetNoteNameFromFrequency(_state.Melody[stepIndex])</span>
-                                        }
-                                    }
-                                </button>
-                            }
-                        </div>
                     </div>
-                }
+                </div>
+                <p class="ribbon-instruction text-high-contrast">Drag, click, or slide across the bar to perform glide melodies with zero latency. While playing, it records notes onto the active sequencer grid step!</p>
             </div>
-        </div>
+        }
+        else if (_activeTab == "sequencer")
+        {
+            <!-- 16-Step Grid Sequencer Dashboard -->
+            <div class="studio-card sequencer-card visible animate-fade">
+                <div class="sequencer-header">
+                    <h3>🎛️ 16-STEP SEQUENCER DASHBOARD</h3>
+                    <span class="sequencer-subtitle text-high-contrast">Click blocks to override notes manually. Pinned items have solid colors; glowing playhead indicates sequence position.</span>
+                </div>
+
+                <!-- Sequencer Legend Overlay -->
+                <div class="sequencer-legend">
+                    <div class="legend-item"><span class="legend-box legend-pinned"></span> <span class="text-high-contrast">Pinned (Your Custom Recording)</span></div>
+                    <div class="legend-item"><span class="legend-box legend-ghosted"></span> <span class="text-high-contrast">Ghosted (Auto-Generated from Vibe)</span></div>
+                    <div class="legend-item"><span class="legend-box legend-active"></span> <span class="text-high-contrast">Playhead Tick Indicator</span></div>
+                </div>
+
+                <!-- Playhead indicator row -->
+                <div class="playhead-track">
+                    <div class="track-label-spacer"></div>
+                    <div class="steps-row">
+                        @for (int s = 0; s < 16; s++)
+                        {
+                            var step = s;
+                            <div class="playhead-dot @(step == _currentStep && _isPlaying ? "active" : "")">
+                                <span class="step-tick-num">@(step + 1)</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Grid Matrix -->
+                <div class="grid-matrix">
+                    @for (int t = 0; t < 5; t++)
+                    {
+                        var trackIndex = t;
+                        var trackName = _trackNames[trackIndex];
+                        var trackColor = _trackColors[trackIndex];
+                        
+                        <div class="matrix-row">
+                            <div class="track-label">
+                                <span class="track-icon">@_trackIcons[trackIndex]</span>
+                                <span class="track-name">@trackName</span>
+                            </div>
+                            <div class="steps-row">
+                                @for (int s = 0; s < 16; s++)
+                                {
+                                    var stepIndex = s;
+                                    var isActive = _state.Grid[trackIndex][stepIndex];
+                                    var isPinned = _pinned[trackIndex][stepIndex];
+                                    var isPlayhead = stepIndex == _currentStep && _isPlaying;
+                                    
+                                    <button class="step-btn @(isActive ? "active" : "") @(isPinned ? "pinned" : "ghosted") @(isPlayhead ? "playhead" : "")"
+                                            style="--track-color: @trackColor"
+                                            @onclick="() => HandleStepClick(trackIndex, stepIndex)">
+                                        @if (isActive)
+                                        {
+                                            if (trackIndex == 3)
+                                            {
+                                                <span class="melody-label">@GetNoteNameFromFrequency(_state.BassNotes[stepIndex])</span>
+                                            }
+                                            else if (trackIndex == 4)
+                                            {
+                                                <span class="melody-label">@GetNoteNameFromFrequency(_state.Melody[stepIndex])</span>
+                                            }
+                                        }
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
     }
 </div>
 
@@ -355,6 +385,8 @@
     private bool _isPlaying = false;
     private int _currentStep = 0;
     private int _selectedTrack = 4; // default to Lead Synth
+
+    private string _activeTab = "mixer"; // mixer, ribbon, sequencer
 
     private string _selectedTemplate = "dre";
     private int _builderBpm = 95;
@@ -374,6 +406,29 @@
 
     private ElementReference _ribbonRef;
     private DotNetObjectReference<object>? _selfRef;
+
+    private string GetPlayingTracksSummary()
+    {
+        var active = new List<string>();
+        for (int i = 0; i < 5; i++)
+        {
+            if (_state.Volume[i] > 0.05)
+            {
+                active.Add(_trackNames[i]);
+            }
+        }
+        return active.Count > 0 ? string.Join(" + ", active) : "MUTED";
+    }
+
+    private void SetTab(string tab)
+    {
+        _activeTab = tab;
+        if (tab == "ribbon" && _selectedTrack != 3 && _selectedTrack != 4)
+        {
+            _selectedTrack = 4; // Auto-select Lead Synth for ribbon playability
+        }
+        _ = Task.Delay(100).ContinueWith(_ => InvokeAsync(BindRibbon));
+    }
 
     protected override void OnInitialized()
     {

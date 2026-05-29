@@ -485,8 +485,8 @@
 }
 
 .channel-strip.armed {
-    border: 1.5px solid var(--track-color);
-    box-shadow: 0 0 15px rgba(255,255,255,0.02), inset 0 0 10px rgba(255,255,255,0.02);
+    border: 2px solid var(--track-color);
+    box-shadow: 0 0 25px var(--track-color), inset 0 0 10px var(--track-color);
     background: #1c2432;
 }
 
@@ -504,7 +504,7 @@
 
 .lcd-number {
     font-size: 0.55rem;
-    color: #4c6864;
+    color: #79a39c; /* Brighter retro calculator green glow */
     font-family: monospace;
     font-weight: 700;
 }
@@ -528,8 +528,8 @@
 /* Arm / Select button */
 .btn-channel-arm {
     background: #0f131b;
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #6b7280;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #a3a9b5; /* Brighter legible button text */
     padding: 0.45rem 0;
     border-radius: 6px;
     font-size: 0.7rem;
@@ -619,7 +619,7 @@
     height: 100%;
     font-family: monospace;
     font-size: 0.55rem;
-    color: #4b5563;
+    color: #9ca3af; /* High contrast legible markers */
     font-weight: 700;
     text-align: right;
     width: 22px;
@@ -632,22 +632,26 @@
     justify-content: center;
     align-items: center;
     position: relative;
+    width: 30px;
+    min-height: 150px;
 }
 
-/* Vertical slider styling */
+/* Vertical slider styling using absolute rotate centring to preserve flex size */
 .strip-fader {
     -webkit-appearance: none;
     appearance: none;
-    writing-mode: vertical-lr; /* For Firefox/standard vertical layout */
-    direction: rtl;            /* Make bottom zero */
-    transform: rotate(-90deg); /* Bulletproof fallback rotation */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-90deg);
     width: 150px;
-    height: 4px;
+    height: 5px;
     background: #090d14;
     border-radius: 2px;
     outline: none;
     cursor: pointer;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    margin: 0;
 }
 
 .strip-fader::-webkit-slider-thumb {
@@ -965,10 +969,167 @@
     border-radius: 2px;
 }
 
+/* ── Tabbed View Styling & HUD readouts ─────────────────── */
+
+.studio-tabs-nav {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    background: #111520;
+    border: 1px solid var(--console-border);
+    border-radius: 12px;
+    padding: 0.5rem;
+    box-shadow: var(--glass-glow);
+}
+
+.tab-nav-btn {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #9ca3af;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.tab-nav-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.tab-nav-btn.active {
+    background: var(--console-plate);
+    color: var(--neon-blue);
+    box-shadow: 0 0 12px rgba(0, 210, 255, 0.15), inset 0 0 4px rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 210, 255, 0.2);
+}
+
+/* Playback monitor HUD readouts */
+.playback-monitor-hud {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #091a18;
+    border: 1px solid #1a3532;
+    border-radius: 10px;
+    padding: 0.35rem 0.75rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    font-weight: bold;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+    margin-right: 0.5rem;
+}
+
+.hud-indicator {
+    color: #4b5563;
+    transition: color 0.1s ease;
+}
+
+.hud-indicator.glowing-active {
+    color: var(--neon-green);
+    text-shadow: 0 0 6px var(--neon-green);
+    animation: flash-led 1s infinite alternate;
+}
+
+@keyframes flash-led {
+    from { opacity: 0.4; }
+    to { opacity: 1; }
+}
+
+.hud-vibe {
+    color: #79a39c;
+}
+
+.hud-tracks {
+    color: var(--lcd-glow);
+    text-shadow: 0 0 4px var(--lcd-glow);
+}
+
+/* Sequencer overlay legend styling */
+.sequencer-legend {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    background: rgba(0,0,0,0.25);
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(255,255,255,0.03);
+    font-size: 0.75rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legend-box {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.legend-pinned {
+    background: var(--neon-blue);
+    box-shadow: 0 0 6px var(--neon-blue);
+}
+
+.legend-ghosted {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px dashed var(--neon-blue);
+}
+
+.legend-active {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid #fff;
+    box-shadow: inset 0 0 4px #fff;
+}
+
+/* Ribbon Track selector picker in tab 2 */
+.ribbon-track-picker {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 0 1rem;
+}
+
+.picker-btn {
+    background: #0f131b;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #9ca3af;
+    padding: 0.35rem 0.85rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.picker-btn.active {
+    background: var(--neon-blue);
+    color: #07090e;
+    box-shadow: 0 0 10px var(--neon-blue);
+    border-color: var(--neon-blue);
+}
+
+/* Contrast enhancement overrides */
+.text-high-contrast {
+    color: #e5e7eb !important;
+}
+
 /* ── Responsive & Details ────────────────────────────────── */
 @media (max-width: 900px) {
     .mixer-console-desk { grid-template-columns: 1fr; gap: 0.75rem; }
     .chords-row { grid-template-columns: repeat(4, 1fr); }
+    .studio-header { flex-direction: column; align-items: stretch; }
+    .playback-monitor-hud { margin-right: 0; justify-content: center; }
 }
 
 @media (max-width: 600px) {
@@ -977,4 +1138,5 @@
     .track-label { width: 40px; }
     .track-name { display: none; }
     .track-label-spacer { width: 40px; }
+    .studio-tabs-nav { flex-direction: column; align-items: stretch; gap: 0.35rem; }
 }
