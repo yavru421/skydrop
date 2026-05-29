@@ -33,38 +33,38 @@ html, body {
 
 /* 1. Strip Safari default styling on the base element */
 input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    background: transparent;
-    cursor: pointer;
-    width: 100%;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: transparent !important;
+    cursor: pointer !important;
+    width: 100% !important;
 }
 
 /* 2. Style the Slider Track for Safari */
 input[type="range"]::-webkit-slider-runnable-track {
-    background: #111827; /* Dark charcoal */
-    border: 1px solid #1f2937;
-    height: 6px;
-    border-radius: 4px;
+    background: #111827 !important; /* Dark charcoal */
+    border: 1px solid #1f2937 !important;
+    height: 6px !important;
+    border-radius: 4px !important;
 }
 
 /* 3. Style the Actual Knob Thumb for Safari (Crucial Step) */
 input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none; /* Strips Safari's silver bubble */
-    appearance: none;
-    margin-top: -6px; /* Centers thumb vertically on track */
-    background: #ef4444; /* Neon accents matching your UI colors */
-    border: 2px solid #ffffff;
-    height: 18px;
-    width: 18px;
-    border-radius: 50%;
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
-    transition: transform 0.1s ease;
+    -webkit-appearance: none !important; /* Strips Safari's silver bubble */
+    appearance: none !important;
+    margin-top: -6px !important; /* Centers thumb vertically on track */
+    background: #ef4444 !important; /* Neon accents matching your UI colors */
+    border: 2px solid #ffffff !important;
+    height: 18px !important;
+    width: 18px !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.5) !important;
+    transition: transform 0.1s ease !important;
 }
 
 /* 4. Boost touch targets for iOS without breaking visual scale */
 input[type="range"]:active::-webkit-slider-thumb {
-    transform: scale(1.2);
+    transform: scale(1.2) !important;
 }
 
 body {
