@@ -1,13 +1,13 @@
 self.assetsManifest = {
-  "version": "RZp9bV9q",
+  "version": "jClQl/YQ",
   "assets": [
     {
-      "hash": "sha256-rAfn93dzRXE+KGURkncJhwxZxx76NepHyGNJIB2gl8c=",
+      "hash": "sha256-/ObLEsbWjpsOTZSdOq9u1jx1LMv9dCaZLHYN9tB9+fQ=",
       "url": "BlazorPwaTemplate.styles.css"
     },
     {
-      "hash": "sha256-IldU1wfALedQv8qLhSZhTWJxxAxwciXDCu0LPEIRT3c=",
-      "url": "_framework/BlazorPwaTemplate.isuxh79yed.wasm"
+      "hash": "sha256-p21n7HaxoYozk5fw/aaUNKIkr6Nqlfcs1wsJ8epXAHw=",
+      "url": "_framework/BlazorPwaTemplate.35zjpnkqo3.wasm"
     },
     {
       "hash": "sha256-wfZQOpXXKYVO6Y4t5cHe0eE4Y+9lQGWPlXKAVHLzcEw=",
@@ -282,16 +282,16 @@ self.assetsManifest = {
       "url": "_framework/de/PdfSharpCore.resources.r4v23awm56.wasm"
     },
     {
+      "hash": "sha256-icKY/Ts3iAne20Zn/EL1iGQitcCnjoWIF2OOGz/Z1MA=",
+      "url": "_framework/dotnet.n4hnvmfkvd.js"
+    },
+    {
       "hash": "sha256-JjMhahXGk4ELW2kbrcR3UeesPCjS5u+B+GQgd60DYQw=",
       "url": "_framework/dotnet.native.qr0tyun6e2.wasm"
     },
     {
       "hash": "sha256-tbdOhKKgalQg+4CRJwGgfGgIMk5afIP+osIevfSO2HI=",
       "url": "_framework/dotnet.native.tyx3t34m37.js"
-    },
-    {
-      "hash": "sha256-t6wZZLBqw0bRNMPHAaz8h7byWTiqyauV6i6SlWrP5Bo=",
-      "url": "_framework/dotnet.pw7pfwns6o.js"
     },
     {
       "hash": "sha256-YyudibIWETMKrLb+nAZdJ+xDY7HY6BWf6s32UAdcvCU=",
@@ -314,7 +314,7 @@ self.assetsManifest = {
       "url": "_headers"
     },
     {
-      "hash": "sha256-Qyh0nQ2WI2CTb8YsGYaA6vhX2/A8eRSwnu7NXdwNNT8=",
+      "hash": "sha256-HAgO723jYE85W6jzohiF3yxbwBnPMG8aO8hiT7cdigM=",
       "url": "css/app.css"
     },
     {
@@ -322,11 +322,11 @@ self.assetsManifest = {
       "url": "favicon.png"
     },
     {
-      "hash": "sha256-6++lZJMwW9H3T50bhJH/jyt9QjW6Ik9A+fWFsAmRTic=",
+      "hash": "sha256-pWZiEElyShxCkXHTFDMjNYmKahEBoz1T/hEs/sd900U=",
       "url": "icon-192.png"
     },
     {
-      "hash": "sha256-CpPsovlm9xitheQaTR/2UMgYYdD2Za8FQnBnsVYmzRk=",
+      "hash": "sha256-KzpLIL+N7JcSdzl4GnYbfpWygK2v3F6qZWbeuSgogMg=",
       "url": "icon-512.png"
     },
     {
@@ -334,7 +334,7 @@ self.assetsManifest = {
       "url": "icon.svg"
     },
     {
-      "hash": "sha256-LBsuIw+JQnHIzk79KsQk8uogkj1kBKmOVv3gkkqp0qU=",
+      "hash": "sha256-jQxiQBqTigpcNO+eqv79wBieDpOqhGNJUBRHvmZbC5A=",
       "url": "index.html"
     },
     {

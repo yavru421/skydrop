@@ -14,7 +14,11 @@
     <div id="app">
         <div class="shotstack-loader">
             <div class="spinner"></div>
-            <span>Mounting ShotStack Environment...</span>
+            <span class="loading-text">Mounting ShotStack Environment...</span>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" style="width: var(--blazor-load-percentage, 0%)"></div>
+            </div>
+            <span class="progress-text">Loading... var(--blazor-load-percentage-text, 0)%</span>
         </div>
     </div>
 
@@ -25,7 +29,26 @@
     </div>
 
     <script src="_framework/blazor.webassembly.66stpp682q.js"></script>
-    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <script>
+        navigator.serviceWorker.register('service-worker.js').then(registration => {
+            registration.onupdatefound = () => {
+                const installingWorker = registration.installing;
+                if (installingWorker == null) {
+                    return;
+                }
+                installingWorker.onstatechange = () => {
+                    if (installingWorker.state === 'installed') {
+                        if (navigator.serviceWorker.controller) {
+                            // A new service worker has been installed and is ready to take over.
+                            // We force a reload to ensure the new assets and index.html are used.
+                            console.log('New or updated content is available, forcing reload...');
+                            window.location.reload();
+                        }
+                    }
+                };
+            };
+        });
+    </script>
     <script src="js/editorInteractions.js"></script>
     
     <script>
