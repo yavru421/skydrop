@@ -25,7 +25,26 @@
     </div>
 
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
-    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <script>
+        navigator.serviceWorker.register('service-worker.js').then(registration => {
+            registration.onupdatefound = () => {
+                const installingWorker = registration.installing;
+                if (installingWorker == null) {
+                    return;
+                }
+                installingWorker.onstatechange = () => {
+                    if (installingWorker.state === 'installed') {
+                        if (navigator.serviceWorker.controller) {
+                            // A new service worker has been installed and is ready to take over.
+                            // We force a reload to ensure the new assets and index.html are used.
+                            console.log('New or updated content is available, forcing reload...');
+                            window.location.reload();
+                        }
+                    }
+                };
+            };
+        });
+    </script>
     <script src="js/editorInteractions.js"></script>
     
     <script>
