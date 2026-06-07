@@ -7,6 +7,7 @@
     <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
     <RunAOTCompilation>false</RunAOTCompilation>
+    <UsingBrowserRuntimeWorkload>false</UsingBrowserRuntimeWorkload>
     <BlazorCacheBootResources>false</BlazorCacheBootResources>
     <DefaultItemExcludes>$(DefaultItemExcludes);output\**;publish_temp\**;dist\**</DefaultItemExcludes>
     <NuGetAudit>false</NuGetAudit>
