@@ -9,7 +9,7 @@
     <BlazorEnableTimeZoneSupport>false</BlazorEnableTimeZoneSupport>
     <BlazorWebAssemblyPreserveCollationData>false</BlazorWebAssemblyPreserveCollationData>
     <EmccMaximumHeapSize>268435456</EmccMaximumHeapSize>
-    <RunAOTCompilation>true</RunAOTCompilation>
+    <RunAOTCompilation>false</RunAOTCompilation>
     <WasmStripILAfterAOT>true</WasmStripILAfterAOT>
     <BlazorCacheBootResources>false</BlazorCacheBootResources>
   </PropertyGroup>
