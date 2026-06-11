@@ -21,6 +21,7 @@ builder.Services.AddSingleton<IToastService, ToastService>();
 builder.Services.AddScoped<IThemeService, ThemeService>();
 builder.Services.AddScoped<IChartService, ChartService>();
 builder.Services.AddScoped<IGestureService, GestureService>();
+builder.Services.AddScoped<SyncService>();
 
 // Tuner
 builder.Services.AddScoped<ITunerService, TunerService>();

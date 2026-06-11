@@ -13,6 +13,11 @@
         New Document
     </button>
 
+    <button class="fab-new-doc" style="margin-top: 16px; background: #2f80ed; box-shadow: 0 4px 14px rgba(47, 128, 237, 0.4);" @onclick="GoToTimeCalc">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><polyline points="12 6 12 12 16 14"></polyline></svg>
+        Time Calc Attendance
+    </button>
+
     <div style="margin-top: 24px;">
         <PwaInstallButton />
     </div>
@@ -26,5 +31,10 @@
     private void GoToEditor()
     {
         Navigation.NavigateTo("/editor");
+    }
+
+    private void GoToTimeCalc()
+    {
+        Navigation.NavigateTo("/time-calc");
     }
 }
