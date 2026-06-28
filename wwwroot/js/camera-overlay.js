@@ -49,19 +49,23 @@ export function startCamera() {
 export async function initializeMediaOverlay(containerId) {
     const container = document.getElementById(containerId);
     if (!container) {
-        throw new Error(`Container with ID "${containerId}" not found.`);
+        return `Container with ID "${containerId}" not found.`;
     }
 
-    // Clear any existing content in the container
-    container.innerHTML = "";
+    // Bind to existing elements to preserve Blazor DOM reference
+    const video = container.querySelector("video") || document.getElementById("cameraFeed");
+    const canvas = container.querySelector("canvas") || document.getElementById("measureCanvas");
 
-    // 1. Create and configure the video element
-    const video = document.createElement("video");
+    if (!video || !canvas) {
+        return "Required video or canvas elements not found in container.";
+    }
+
+    // 1. Configure the video element
     video.style.width = "100%";
     video.style.height = "100%";
     video.style.objectFit = "cover";
-    
-    // Programmatic settings required to prevent iOS Safari from hijacking full screen
+    video.style.transform = "scaleX(-1)"; // Mirror video
+    video.style.webkitTransform = "scaleX(-1)";
     video.autoplay = true;
     video.muted = true;
     video.playsInline = true;
@@ -70,14 +74,13 @@ export async function initializeMediaOverlay(containerId) {
     video.setAttribute("autoplay", "");
     video.setAttribute("muted", "");
 
-    // 2. Create and configure the canvas element
-    const canvas = document.createElement("canvas");
+    // 2. Configure the canvas element
     canvas.style.position = "absolute";
     canvas.style.top = "0";
     canvas.style.left = "0";
     canvas.style.width = "100%";
     canvas.style.height = "100%";
-    canvas.style.pointerEvents = "none";
+    canvas.style.pointerEvents = "auto";
     canvas.style.zIndex = "10";
     canvas.style.background = "transparent";
 
@@ -85,41 +88,21 @@ export async function initializeMediaOverlay(containerId) {
     canvasRef = canvas;
     contextRef = canvas.getContext("2d");
 
-    // 3. Create and configure the interaction event capture layer
-    const interactionDiv = document.createElement("div");
-    interactionDiv.style.position = "absolute";
-    interactionDiv.style.top = "0";
-    interactionDiv.style.left = "0";
-    interactionDiv.style.width = "100%";
-    interactionDiv.style.height = "100%";
-    interactionDiv.style.zIndex = "20";
-    interactionDiv.style.background = "transparent";
-
-    interactionDiv.addEventListener("pointerdown", (event) => {
-        const rect = container.getBoundingClientRect();
-        const clickYPercent = (event.clientY - rect.top) / rect.height;
-        const scaledY = Math.floor(clickYPercent * canvas.height);
-
-        if (clickCallback) {
-            clickCallback(scaledY);
-        }
-    });
-
-    // Append elements to container
-    container.appendChild(video);
-    container.appendChild(canvas);
-    container.appendChild(interactionDiv);
-
     // 4. Set up resolution & High-DPI coordinate alignment when metadata loads
     video.addEventListener("loadedmetadata", () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
     });
 
-    // 5. Request the camera stream using Rear Camera Stream Constraints (with fallback)
+    if (video.videoWidth) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+    }
+
+    // 5. Request the camera stream using user-facing camera (front camera) for mirroring
     const constraints = {
         video: {
-            facingMode: { exact: "environment" },
+            facingMode: "user",
             width: { ideal: 1280 },
             height: { ideal: 720 }
         },
@@ -129,8 +112,9 @@ export async function initializeMediaOverlay(containerId) {
     try {
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
+        return null; // indicates success
     } catch (error) {
-        console.warn("Exact environment facingMode failed, falling back to soft constraints.", error);
+        console.warn("Front-facing user camera failed, falling back to standard facingMode.", error);
         
         const fallbackConstraints = {
             video: {
@@ -142,9 +126,10 @@ export async function initializeMediaOverlay(containerId) {
         try {
             const stream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
             video.srcObject = stream;
+            return null; // indicates success
         } catch (fallbackError) {
-            console.error("Failed to acquire camera stream with soft constraints.", fallbackError);
-            throw fallbackError;
+            console.error("Failed to acquire camera stream.", fallbackError);
+            return `Camera access failed: ${fallbackError.message || fallbackError.toString()}`;
         }
     }
 }

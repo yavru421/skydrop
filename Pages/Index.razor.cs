@@ -1,67 +1,77 @@
 using System;
 using System.Runtime.InteropServices.JavaScript;
+using Microsoft.JSInterop;
+using System.Threading.Tasks;
 
-namespace BlazorPwaTemplate.Pages
+namespace PourAndMeasure.Pages
 {
     public partial class Index : IDisposable
     {
-        public static string CurrentMode { get; private set; } = "Measure";
-        private static double _pixelToMmRatio = 1.0; 
-        public static double LatestMeasurement { get; private set; } = 0.0;
+        private int activeScene = 1;
+        private bool isUploading = false;
+        private int uploadProgress = 0;
+        private bool isAttacked = false;
+        private string pourState = "None"; // None, SaaS, ZLA, Complete
+        private bool jigDissolved = false;
+        private bool celebrateActive = false;
 
-        public static event Action? OnMeasurementUpdated;
+        [JSImport("triggerConfetti", "zla-interop")]
+        internal static partial void TriggerConfettiJS();
 
-        protected override void OnInitialized()
+        private async Task SimulateUpload()
         {
-            OnMeasurementUpdated += HandleMeasurementUpdated;
+            if (isUploading) return;
+            isUploading = true;
+            uploadProgress = 0;
+            StateHasChanged();
+            
+            while (uploadProgress < 100)
+            {
+                await Task.Delay(200);
+                uploadProgress += 10;
+                StateHasChanged();
+            }
+            isUploading = false;
+            isAttacked = true;
+            StateHasChanged();
         }
 
-        private void HandleMeasurementUpdated()
+        private void NextScene()
         {
-            InvokeAsync(StateHasChanged);
+            if (activeScene < 5)
+            {
+                activeScene++;
+                StateHasChanged();
+            }
+        }
+
+        private void SetPourState(string state)
+        {
+            pourState = state;
+            if (state == "ZLA")
+            {
+                jigDissolved = true;
+            }
+            StateHasChanged();
+        }
+
+        private void Celebrate()
+        {
+            celebrateActive = true;
+            try
+            {
+                TriggerConfettiJS();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Confetti Trigger Error: {ex.Message}");
+            }
+            StateHasChanged();
         }
 
         public void Dispose()
         {
-            OnMeasurementUpdated -= HandleMeasurementUpdated;
-        }
-
-        private void SetCalibrateMode()
-        {
-            CurrentMode = "Calibrate";
-            StateHasChanged();
-        }
-
-        private void SetMeasureMode()
-        {
-            CurrentMode = "Measure";
-            StateHasChanged();
-        }
-
-        [JSExport]
-        public static void CalculateDistance(double startX, double startY, double currentX, double currentY)
-        {
-            double pixelDistance = Math.Sqrt(Math.Pow(currentX - startX, 2) + Math.Pow(currentY - startY, 2));
-
-            if (CurrentMode == "Calibrate")
-            {
-                // Assume the user is tracking a known 300mm reference object
-                double referenceLengthMm = 300.0;
-                
-                if (pixelDistance > 0)
-                {
-                    _pixelToMmRatio = referenceLengthMm / pixelDistance;
-                    LatestMeasurement = referenceLengthMm;
-                }
-            }
-            else // Measure
-            {
-                // Convert pixel distance to physical dimension using our established ratio
-                LatestMeasurement = pixelDistance * _pixelToMmRatio;
-            }
-
-            // Notify UI to refresh
-            OnMeasurementUpdated?.Invoke();
+            // Clean up resources if necessary
         }
     }
 }

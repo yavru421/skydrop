@@ -2,30 +2,76 @@
 @using System.Runtime.InteropServices.JavaScript
 @implements IDisposable
 
-<div class="glass-pane-container">
-    <!-- Layer 0: The Video Feed -->
-    <video id="cameraFeed" class="glass-pane-video" playsinline autoplay muted></video>
-    
-    <!-- Layer 1: The Canvas Overlay -->
-    <canvas id="measureCanvas" class="glass-pane-canvas"></canvas>
-
-    <!-- Layer 2: The UI Controls -->
-    <div class="glass-pane-ui">
-        <div class="ui-panel">
-            <div class="measurement-display">
-                <span class="value">@LatestMeasurement.ToString("F1")</span>
-                <span class="unit">mm</span>
-            </div>
-            <div class="mode-indicator" style="color: #ccc; font-size: 0.9rem; margin-bottom: 8px;">
-                Mode: <strong>@CurrentMode</strong>
-            </div>
-            
-            <div class="button-group">
-                <button class="btn @(CurrentMode == "Calibrate" ? "btn-primary" : "btn-secondary")" @onclick="SetCalibrateMode">Calibrate</button>
-                <button class="btn @(CurrentMode == "Measure" ? "btn-primary" : "btn-secondary")" @onclick="SetMeasureMode">Measure</button>
+<div class="pipeline-container">
+    @if (activeScene == 1)
+    {
+        <div class="scene scene-1">
+            <div class="glass-card">
+                <h1 class="neon-text-red">The Hook: Sluggish SaaS Monument</h1>
+                <div class="attack-fortress">Giant Locked Fortress</div>
+                <button class="slow-upload-btn" @onclick="SimulateUpload" disabled="@isUploading">
+                    @(isUploading ? $"Uploading... {uploadProgress}%" : "Simulate SaaS Upload")
+                </button>
+                @if(uploadProgress >= 100)
+                {
+                    <button class="btn-next" @onclick="NextScene">Next Scene</button>
+                }
             </div>
         </div>
-    </div>
+    }
+    else if (activeScene == 2)
+    {
+        <div class="scene scene-2">
+            <div class="glass-card">
+                <h1 class="neon-text-red siren-alert">The Attack Surface</h1>
+                <div class="attack-fortress siren-alert">Broken Fortress</div>
+                <p>Compliance Warning: Database Breach!</p>
+                <button class="btn-next" @onclick="NextScene">Shift Paradigm</button>
+            </div>
+        </div>
+    }
+    else if (activeScene == 3)
+    {
+        <div class="scene scene-3">
+            <div class="glass-card">
+                <h1 class="neon-text-blue">The Paradigm Shift</h1>
+                <div class="wireframe-jig">
+                    <p>Zero-Liability Architecture Blueprint</p>
+                </div>
+                <button class="btn-next" @onclick="NextScene">See it in Action</button>
+            </div>
+        </div>
+    }
+    else if (activeScene == 4)
+    {
+        <div class="scene scene-4">
+            <div class="glass-card">
+                <h1 class="neon-text-green">Zero Data Custody in Action</h1>
+                <div class="data-pour-container">
+                    <p>Pour State: @pourState</p>
+                    <button @onclick='() => SetPourState("ZLA")'>Pour Data (Local)</button>
+                    <button @onclick='() => SetPourState("Complete")'>Finish Pour</button>
+                </div>
+                <button class="btn-next" @onclick="NextScene">Generate Output</button>
+            </div>
+        </div>
+    }
+    else if (activeScene == 5)
+    {
+        <div class="scene scene-5">
+            <div class="glass-card">
+                <h1 class="neon-text-blue">The Absolute Output</h1>
+                <div class="dashboard">
+                    <p>Local processing complete. 100% Private PDF generated.</p>
+                </div>
+                <button class="celebration-btn" @onclick="Celebrate">Celebrate!</button>
+                @if(celebrateActive)
+                {
+                    <p class="neon-text-green">🎉 Confetti Deployed 🎉</p>
+                }
+            </div>
+        </div>
+    }
 </div>
 
 @code {
@@ -33,23 +79,19 @@
     {
         if (firstRender)
         {
-            // Initialize the canvas and touch listeners from the JS module
             await InitializeJavaScriptAsync();
         }
     }
 
-    [JSImport("initCanvas", "ruler")]
-    internal static partial void InitCanvasInterop();
-
-    [JSImport("bindInterop", "ruler")]
-    internal static partial void BindInterop();
-
     private async Task InitializeJavaScriptAsync()
     {
-        // Import our ruler.js module dynamically 
-        await JSHost.ImportAsync("ruler", "../js/ruler.js");
-        
-        // Initialize the canvas resize and touch event listeners
-        InitCanvasInterop();
+        try
+        {
+            await JSHost.ImportAsync("zla-interop", "../js/zla-interop.js");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"JS Init Error: {ex.Message}");
+        }
     }
 }
