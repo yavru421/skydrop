@@ -125,6 +125,24 @@ window.fileBridge = {
         this.receivedSize = 0;
     },
 
+    setupDropZone(elementId) {
+        const dropZone = document.getElementById(elementId);
+        if (!dropZone) return;
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                this.sendFile(e.dataTransfer.files[0]);
+            }
+        });
+    },
+
     dispose() {
         if (this.connection) {
             this.connection.close();

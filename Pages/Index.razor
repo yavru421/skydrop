@@ -1,97 +1,144 @@
 @page "/"
-@using System.Runtime.InteropServices.JavaScript
+@using sky_drop.Services
+@inject FileBridgeService FileBridge
+@inject IJSRuntime JSRuntime
 @implements IDisposable
 
-<div class="pipeline-container">
-    @if (activeScene == 1)
+<div class="state-container">
+    @if (CurrentState == AppState.Lobby)
     {
-        <div class="scene scene-1">
-            <div class="glass-card">
-                <h1 class="neon-text-red">The Hook: Sluggish SaaS Monument</h1>
-                <div class="attack-fortress">Giant Locked Fortress</div>
-                <button class="slow-upload-btn" @onclick="SimulateUpload" disabled="@isUploading">
-                    @(isUploading ? $"Uploading... {uploadProgress}%" : "Simulate SaaS Upload")
-                </button>
-                @if(uploadProgress >= 100)
-                {
-                    <button class="btn-next" @onclick="NextScene">Next Scene</button>
-                }
+        <div class="lobby-state">
+            <h1>sky-drop</h1>
+            <div class="actions">
+                <button class="btn btn-primary" @onclick="HostSession">Host</button>
+                <button class="btn btn-secondary" @onclick="() => CurrentState = AppState.Joining">Join</button>
             </div>
         </div>
     }
-    else if (activeScene == 2)
+    else if (CurrentState == AppState.Hosting)
     {
-        <div class="scene scene-2">
-            <div class="glass-card">
-                <h1 class="neon-text-red siren-alert">The Attack Surface</h1>
-                <div class="attack-fortress siren-alert">Broken Fortress</div>
-                <p>Compliance Warning: Database Breach!</p>
-                <button class="btn-next" @onclick="NextScene">Shift Paradigm</button>
+        <div class="hosting-state">
+            <h2>Your Peer ID</h2>
+            <div class="peer-id-display">@(LocalPeerId ?? "Generating...")</div>
+            <p>Awaiting connection...</p>
+        </div>
+    }
+    else if (CurrentState == AppState.Joining)
+    {
+        <div class="joining-state">
+            <h2>Enter Target Peer ID</h2>
+            <input type="text" @bind="TargetPeerId" class="peer-input" placeholder="Peer ID" />
+            <button class="btn btn-primary" @onclick="ConnectToPeer">Connect</button>
+            <button class="btn btn-secondary" @onclick="() => CurrentState = AppState.Lobby">Back</button>
+        </div>
+    }
+    else if (CurrentState == AppState.Connected)
+    {
+        <div class="connected-state">
+            <div id="drop-zone" class="drop-zone">
+                <span class="drop-text">Tunnel Locked. Drop File Here.</span>
             </div>
         </div>
     }
-    else if (activeScene == 3)
+    else if (CurrentState == AppState.Transferring)
     {
-        <div class="scene scene-3">
-            <div class="glass-card">
-                <h1 class="neon-text-blue">The Paradigm Shift</h1>
-                <div class="wireframe-jig">
-                    <p>Zero-Liability Architecture Blueprint</p>
-                </div>
-                <button class="btn-next" @onclick="NextScene">See it in Action</button>
-            </div>
-        </div>
-    }
-    else if (activeScene == 4)
-    {
-        <div class="scene scene-4">
-            <div class="glass-card">
-                <h1 class="neon-text-green">Zero Data Custody in Action</h1>
-                <div class="data-pour-container">
-                    <p>Pour State: @pourState</p>
-                    <button @onclick='() => SetPourState("ZLA")'>Pour Data (Local)</button>
-                    <button @onclick='() => SetPourState("Complete")'>Finish Pour</button>
-                </div>
-                <button class="btn-next" @onclick="NextScene">Generate Output</button>
-            </div>
-        </div>
-    }
-    else if (activeScene == 5)
-    {
-        <div class="scene scene-5">
-            <div class="glass-card">
-                <h1 class="neon-text-blue">The Absolute Output</h1>
-                <div class="dashboard">
-                    <p>Local processing complete. 100% Private PDF generated.</p>
-                </div>
-                <button class="celebration-btn" @onclick="Celebrate">Celebrate!</button>
-                @if(celebrateActive)
-                {
-                    <p class="neon-text-green">🎉 Confetti Deployed 🎉</p>
-                }
-            </div>
+        <div class="transferring-state">
+            <h2>Transferring...</h2>
+            <progress value="@TransferProgress" max="100" class="progress-bar"></progress>
+            <div class="progress-text">@TransferProgress%</div>
         </div>
     }
 </div>
 
 @code {
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private enum AppState
     {
-        if (firstRender)
+        Lobby,
+        Hosting,
+        Joining,
+        Connected,
+        Transferring
+    }
+
+    private AppState CurrentState { get; set; } = AppState.Lobby;
+    private string? LocalPeerId { get; set; }
+    private string TargetPeerId { get; set; } = "";
+    private int TransferProgress { get; set; } = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        FileBridge.OnPeerIdGenerated += HandlePeerIdGenerated;
+        FileBridge.OnConnected += HandleConnected;
+        FileBridge.OnDisconnected += HandleDisconnected;
+        FileBridge.OnTransferProgress += HandleTransferProgress;
+        FileBridge.OnTransferComplete += HandleTransferComplete;
+
+        await FileBridge.InitializeAsync();
+    }
+
+    private void HostSession()
+    {
+        CurrentState = AppState.Hosting;
+    }
+
+    private async Task ConnectToPeer()
+    {
+        if (!string.IsNullOrWhiteSpace(TargetPeerId))
         {
-            await InitializeJavaScriptAsync();
+            await FileBridge.ConnectToPeerAsync(TargetPeerId);
         }
     }
 
-    private async Task InitializeJavaScriptAsync()
+    private void HandlePeerIdGenerated(string peerId)
     {
-        try
+        LocalPeerId = peerId;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async void HandleConnected()
+    {
+        CurrentState = AppState.Connected;
+        await InvokeAsync(StateHasChanged);
+        
+        await Task.Delay(100); 
+        await JSRuntime.InvokeVoidAsync("fileBridge.setupDropZone", "drop-zone");
+    }
+
+    private void HandleDisconnected()
+    {
+        CurrentState = AppState.Lobby;
+        LocalPeerId = null;
+        TargetPeerId = "";
+        TransferProgress = 0;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleTransferProgress(int percentage)
+    {
+        if (CurrentState != AppState.Transferring)
         {
-            await JSHost.ImportAsync("zla-interop", "../js/zla-interop.js");
+            CurrentState = AppState.Transferring;
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"JS Init Error: {ex.Message}");
-        }
+        TransferProgress = percentage;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleTransferComplete()
+    {
+        CurrentState = AppState.Connected;
+        TransferProgress = 0;
+        await InvokeAsync(StateHasChanged);
+        
+        await Task.Delay(100);
+        await JSRuntime.InvokeVoidAsync("fileBridge.setupDropZone", "drop-zone");
+    }
+
+    public void Dispose()
+    {
+        FileBridge.OnPeerIdGenerated -= HandlePeerIdGenerated;
+        FileBridge.OnConnected -= HandleConnected;
+        FileBridge.OnDisconnected -= HandleDisconnected;
+        FileBridge.OnTransferProgress -= HandleTransferProgress;
+        FileBridge.OnTransferComplete -= HandleTransferComplete;
     }
 }
