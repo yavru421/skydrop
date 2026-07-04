@@ -3,6 +3,7 @@
 @using Microsoft.JSInterop
 @inject FileBridgeService FileBridge
 @inject IJSRuntime JSRuntime
+@inject NavigationManager NavManager
 @implements IDisposable
 
 <div class="state-container">
@@ -82,6 +83,18 @@
         FileBridge.OnTransferComplete += HandleTransferComplete;
 
         await FileBridge.InitializeAsync();
+
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        if (uri.Query.Contains("join="))
+        {
+            TargetPeerId = Uri.UnescapeDataString(uri.Query.Split("join=")[1].Split('&')[0]);
+            CurrentState = AppState.Joining;
+            
+            _ = Task.Run(async () => {
+                await Task.Delay(1000); // Give FileBridge a moment to initialize PeerJS
+                await InvokeAsync(ConnectToPeer);
+            });
+        }
     }
 
     private async void HostSession()
@@ -120,9 +133,16 @@
     }
 
     [JSInvokable]
-    public async Task HandleQRScanned(string scannedId)
+    public async Task HandleQRScanned(string scannedText)
     {
-        TargetPeerId = scannedId;
+        if (scannedText.Contains("join="))
+        {
+            TargetPeerId = Uri.UnescapeDataString(scannedText.Split("join=")[1].Split('&')[0]);
+        }
+        else
+        {
+            TargetPeerId = scannedText;
+        }
         StateHasChanged();
         await ConnectToPeer();
     }
@@ -135,7 +155,8 @@
         if (CurrentState == AppState.Hosting)
         {
             await Task.Delay(100);
-            await JSRuntime.InvokeVoidAsync("zlaInterop.generateQR", "qrcode-container", peerId);
+            var joinUrl = $"https://skydrop.dondlingergc.com/?join={peerId}";
+            await JSRuntime.InvokeVoidAsync("zlaInterop.generateQR", "qrcode-container", joinUrl);
         }
     }
 
