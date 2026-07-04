@@ -107,6 +107,10 @@ async function onFetch(event) {
 
     let cachedResponse = null;
     if (event.request.method === 'GET') {
+        if (!event.request.url.startsWith(self.origin)) {
+            return fetch(event.request);
+        }
+
         const shouldServeIndexHtml = event.request.mode === 'navigate'
             && !manifestUrlList.some(url => url === event.request.url);
 
