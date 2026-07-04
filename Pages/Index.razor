@@ -104,7 +104,8 @@
         if (!string.IsNullOrEmpty(LocalPeerId))
         {
             await Task.Delay(100);
-            await JSRuntime.InvokeVoidAsync("zlaInterop.generateQR", "qrcode-container", LocalPeerId);
+            var joinUrl = $"https://skydrop.dondlingergc.com/?join={LocalPeerId}";
+            await JSRuntime.InvokeVoidAsync("zlaInterop.generateQR", "qrcode-container", joinUrl);
         }
     }
 
