@@ -1,0 +1,1 @@
+2026-07-04: Delegated CSP and WASM debugging. Root cause: .NET 8+ dynamic import map triggered CSP violation, leading to 404 text/html fallback for dotnet.js. Resolution: User manually applied sha256 hashes and unsafe-inline to index.html and _headers. Goal Verification Agent noted unsafe-inline weakens CSP security.
