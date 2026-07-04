@@ -13,6 +13,13 @@ window.fileBridge = {
         this.dotNetRef = dotNetRef;
         try {
             const response = await fetch('/api/turn');
+            if (!response.ok) {
+                throw new Error(`TURN API failed with status ${response.status}`);
+            }
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error(`TURN API returned non-JSON content: ${contentType}`);
+            }
             const turnCredentials = await response.json();
             
             this.peer = new Peer({
@@ -24,7 +31,13 @@ window.fileBridge = {
             });
         } catch (error) {
             console.error('Failed to initialize PeerJS with custom TURN, falling back:', error);
-            this.peer = new Peer();
+            this.peer = new Peer({
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' }
+                    ]
+                }
+            });
         }
 
         this.peer.on('open', (id) => {
