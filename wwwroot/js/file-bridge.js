@@ -66,15 +66,17 @@ window.fileBridge = {
         });
 
         this.connection.on('data', (data) => {
-            if (data.type === 'metadata') {
+            if (data && data.type === 'metadata') {
                 this.expectedSize = data.size;
                 this.expectedFileName = data.name;
                 this.expectedFileType = data.fileType;
                 this.receivedChunks = [];
                 this.receivedSize = 0;
-            } else if (data instanceof ArrayBuffer) {
+                this.dotNetRef.invokeMethodAsync('TriggerTransferProgress', 0);
+            } else if (data) {
+                const byteLength = data.byteLength || data.size || data.length || 0;
                 this.receivedChunks.push(data);
-                this.receivedSize += data.byteLength;
+                this.receivedSize += byteLength;
                 
                 const percentage = Math.floor((this.receivedSize / this.expectedSize) * 100);
                 this.dotNetRef.invokeMethodAsync('TriggerTransferProgress', percentage);
@@ -93,7 +95,6 @@ window.fileBridge = {
     async sendFile(file) {
         if (!this.connection || !this.connection.open) return;
         
-        // Send metadata first
         this.connection.send({
             type: 'metadata',
             name: file.name,
@@ -101,15 +102,27 @@ window.fileBridge = {
             fileType: file.type
         });
         
-        const arrayBuffer = await file.arrayBuffer();
         let offset = 0;
-        
-        while (offset < arrayBuffer.byteLength) {
-            const chunk = arrayBuffer.slice(offset, offset + this.CHUNK_SIZE);
+        const readSlice = (o, size) => new Promise((resolve, reject) => {
+            const slice = file.slice(o, o + size);
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(slice);
+        });
+
+        while (offset < file.size) {
+            // Respect WebRTC buffer limit to avoid closing the channel
+            if (this.connection.dataChannel && this.connection.dataChannel.bufferedAmount > 1024 * 1024 * 2) {
+                await new Promise(r => setTimeout(r, 50));
+                continue;
+            }
+
+            const chunk = await readSlice(offset, this.CHUNK_SIZE);
             this.connection.send(chunk);
-            offset += this.CHUNK_SIZE;
+            offset += chunk.byteLength;
             
-            const percentage = Math.floor((offset / arrayBuffer.byteLength) * 100);
+            const percentage = Math.floor((offset / file.size) * 100);
             this.dotNetRef.invokeMethodAsync('TriggerTransferProgress', percentage);
         }
         
