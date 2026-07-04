@@ -151,6 +151,42 @@ window.fileBridge = {
         this.receivedSize = 0;
     },
 
+    async processAndSendFiles(fileList) {
+        if (!fileList || fileList.length === 0) return;
+        
+        if (fileList.length === 1) {
+            // Single file bypasses ZIP to save CPU/Memory
+            this.sendFile(fileList[0]);
+            return;
+        }
+
+        // Notify UI we are compressing
+        if (this.dotNetRef) {
+            this.dotNetRef.invokeMethodAsync('TriggerTransferProgress', 0); // Temporary visual cue
+        }
+
+        const zip = new JSZip();
+        for (let i = 0; i < fileList.length; i++) {
+            const f = fileList[i];
+            zip.file(f.name, f);
+        }
+
+        const zipBlob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+        zipBlob.name = `SkyDrop_Archive_${Date.now()}.zip`;
+        
+        this.sendFile(zipBlob);
+    },
+
+    setupFilePicker(elementId) {
+        const filePicker = document.getElementById(elementId);
+        if (!filePicker) return;
+
+        filePicker.addEventListener('change', (e) => {
+            this.processAndSendFiles(e.target.files);
+            filePicker.value = ''; // Reset
+        });
+    },
+
     setupDropZone(elementId) {
         const dropZone = document.getElementById(elementId);
         if (!dropZone) return;
@@ -164,7 +200,7 @@ window.fileBridge = {
             e.preventDefault();
             e.stopPropagation();
             if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                this.sendFile(e.dataTransfer.files[0]);
+                this.processAndSendFiles(e.dataTransfer.files);
             }
         });
     },

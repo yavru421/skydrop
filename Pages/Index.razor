@@ -42,8 +42,12 @@
     else if (CurrentState == AppState.Connected)
     {
         <div class="connected-state">
+            <div class="file-picker-container" style="margin-bottom: 20px;">
+                <label for="filePicker" class="btn btn-primary">Select Files</label>
+                <input type="file" id="filePicker" multiple style="display: none;" />
+            </div>
             <div id="drop-zone" class="drop-zone">
-                <span class="drop-text">Tunnel Locked. Drop File Here.</span>
+                <span class="drop-text">Tunnel Locked. Drop Files Here.</span>
             </div>
         </div>
     }
@@ -168,6 +172,7 @@
         
         await Task.Delay(100); 
         await JSRuntime.InvokeVoidAsync("fileBridge.setupDropZone", "drop-zone");
+        await JSRuntime.InvokeVoidAsync("fileBridge.setupFilePicker", "filePicker");
     }
 
     private void HandleDisconnected()
@@ -197,6 +202,7 @@
         
         await Task.Delay(100);
         await JSRuntime.InvokeVoidAsync("fileBridge.setupDropZone", "drop-zone");
+        await JSRuntime.InvokeVoidAsync("fileBridge.setupFilePicker", "filePicker");
     }
 
     public void Dispose()
