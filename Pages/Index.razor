@@ -1,5 +1,6 @@
 @page "/"
 @using sky_drop.Services
+@using Microsoft.JSInterop
 @inject FileBridgeService FileBridge
 @inject IJSRuntime JSRuntime
 @implements IDisposable
@@ -11,7 +12,7 @@
             <h1>sky-drop</h1>
             <div class="actions">
                 <button class="btn btn-primary" @onclick="HostSession">Host</button>
-                <button class="btn btn-secondary" @onclick="() => CurrentState = AppState.Joining">Join</button>
+                <button class="btn btn-secondary" @onclick="JoinSession">Join</button>
             </div>
         </div>
     }
@@ -20,16 +21,21 @@
         <div class="hosting-state">
             <h2>Your Peer ID</h2>
             <div class="peer-id-display">@(LocalPeerId ?? "Generating...")</div>
+            @if (!string.IsNullOrEmpty(LocalPeerId))
+            {
+                <div id="qrcode-container" class="qr-container"></div>
+            }
             <p>Awaiting connection...</p>
         </div>
     }
     else if (CurrentState == AppState.Joining)
     {
         <div class="joining-state">
-            <h2>Enter Target Peer ID</h2>
-            <input type="text" @bind="TargetPeerId" class="peer-input" placeholder="Peer ID" />
+            <h2>Scan or Enter Peer ID</h2>
+            <div id="qr-reader" class="qr-reader"></div>
+            <input type="text" @bind="TargetPeerId" class="peer-input" placeholder="Manual Peer ID" />
             <button class="btn btn-primary" @onclick="ConnectToPeer">Connect</button>
-            <button class="btn btn-secondary" @onclick="() => CurrentState = AppState.Lobby">Back</button>
+            <button class="btn btn-secondary" @onclick="CancelJoin">Back</button>
         </div>
     }
     else if (CurrentState == AppState.Connected)
@@ -64,9 +70,11 @@
     private string? LocalPeerId { get; set; }
     private string TargetPeerId { get; set; } = "";
     private int TransferProgress { get; set; } = 0;
+    private DotNetObjectReference<Index>? _objRef;
 
     protected override async Task OnInitializedAsync()
     {
+        _objRef = DotNetObjectReference.Create(this);
         FileBridge.OnPeerIdGenerated += HandlePeerIdGenerated;
         FileBridge.OnConnected += HandleConnected;
         FileBridge.OnDisconnected += HandleDisconnected;
@@ -76,23 +84,59 @@
         await FileBridge.InitializeAsync();
     }
 
-    private void HostSession()
+    private async void HostSession()
     {
         CurrentState = AppState.Hosting;
+        await InvokeAsync(StateHasChanged);
+        if (!string.IsNullOrEmpty(LocalPeerId))
+        {
+            await Task.Delay(100);
+            await JSRuntime.InvokeVoidAsync("zlaInterop.generateQR", "qrcode-container", LocalPeerId);
+        }
+    }
+
+    private async void JoinSession()
+    {
+        CurrentState = AppState.Joining;
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(100); // Wait for DOM to render qr-reader
+        await JSRuntime.InvokeVoidAsync("zlaInterop.startScanner", "qr-reader", _objRef);
+    }
+
+    private async void CancelJoin()
+    {
+        await JSRuntime.InvokeVoidAsync("zlaInterop.stopScanner");
+        CurrentState = AppState.Lobby;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ConnectToPeer()
     {
         if (!string.IsNullOrWhiteSpace(TargetPeerId))
         {
+            await JSRuntime.InvokeVoidAsync("zlaInterop.stopScanner");
             await FileBridge.ConnectToPeerAsync(TargetPeerId);
         }
     }
 
-    private void HandlePeerIdGenerated(string peerId)
+    [JSInvokable]
+    public async Task HandleQRScanned(string scannedId)
+    {
+        TargetPeerId = scannedId;
+        StateHasChanged();
+        await ConnectToPeer();
+    }
+
+    private async void HandlePeerIdGenerated(string peerId)
     {
         LocalPeerId = peerId;
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
+        
+        if (CurrentState == AppState.Hosting)
+        {
+            await Task.Delay(100);
+            await JSRuntime.InvokeVoidAsync("zlaInterop.generateQR", "qrcode-container", peerId);
+        }
     }
 
     private async void HandleConnected()
@@ -135,6 +179,11 @@
 
     public void Dispose()
     {
+        if (_objRef != null)
+        {
+            try { JSRuntime.InvokeVoidAsync("zlaInterop.stopScanner"); } catch { }
+            _objRef.Dispose();
+        }
         FileBridge.OnPeerIdGenerated -= HandlePeerIdGenerated;
         FileBridge.OnConnected -= HandleConnected;
         FileBridge.OnDisconnected -= HandleDisconnected;
