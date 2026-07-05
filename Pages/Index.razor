@@ -12,6 +12,7 @@
         <div class="home-state">
             <header class="app-header">
                 <h1>sky-drop</h1>
+                <button class="btn-help" @onclick="ToggleHelp" title="How to use">?</button>
             </header>
             
             <div class="qr-host-panel">
@@ -80,6 +81,23 @@
     }
 </div>
 
+@if (ShowHelp)
+{
+    <div class="help-overlay" @onclick="ToggleHelp">
+        <div class="help-modal" @onclick:stopPropagation="true">
+            <h2>How to use Sky-Drop</h2>
+            <ul class="help-list">
+                <li><strong>1. Open on both devices:</strong> Make sure both devices are on the skydrop website.</li>
+                <li><strong>2. Scan to link:</strong> Use the 📷 <strong>Scan QR</strong> button on one device to scan the code shown on the other.</li>
+                <li><strong>3. Instant Transfer:</strong> Once connected, the file picker will open automatically. Select files and they will transfer directly over a secure peer-to-peer tunnel!</li>
+                <li><strong>4. Beam Clipboard:</strong> Click <strong>Beam Clipboard</strong> to instantly send your copied text/links to the other device.</li>
+                <li><strong>Note:</strong> Your most recent devices will appear under <strong>Recent Devices</strong> for instant 1-tap reconnections.</li>
+            </ul>
+            <button class="btn btn-primary" @onclick="ToggleHelp">Got it!</button>
+        </div>
+    </div>
+}
+
 @if (ShowIosInstallPrompt)
 {
     <div class="ios-install-prompt tooltip">
@@ -101,6 +119,7 @@
     private string TargetPeerId { get; set; } = "";
     private int TransferProgress { get; set; } = 0;
     private bool ShowIosInstallPrompt { get; set; } = false;
+    private bool ShowHelp { get; set; } = false;
     private List<string> RecentPeers { get; set; } = new();
     private DotNetObjectReference<Index>? _objRef;
 
@@ -236,6 +255,11 @@
     private void DismissIosPrompt()
     {
         ShowIosInstallPrompt = false;
+    }
+
+    private void ToggleHelp()
+    {
+        ShowHelp = !ShowHelp;
     }
 
     public void Dispose()

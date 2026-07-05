@@ -20,6 +20,15 @@
     gap: 2rem;
 }
 
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    position: relative;
+    width: 100%;
+}
+
 .app-header h1 {
     font-size: 2.5rem;
     font-weight: 700;
@@ -28,6 +37,29 @@
     background: linear-gradient(135deg, #007aff, #34c759);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+.btn-help {
+    background: rgba(255, 255, 255, 0.1);
+    color: #8e8e93;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-help:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
 }
 
 .qr-host-panel {
@@ -274,3 +306,51 @@
 }
 .progress-bar::-webkit-progress-bar { background-color: #1c1c1e; }
 .progress-bar::-webkit-progress-value { background-color: #007aff; }
+
+/* Help Modal */
+.help-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.help-modal {
+    background: #1c1c1e;
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.help-modal h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #fff;
+    text-align: center;
+}
+
+.help-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    color: #d1d1d6;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.help-list li strong {
+    color: #34c759;
+}
