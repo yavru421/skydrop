@@ -2,7 +2,7 @@ window.fileBridge = {
     peer: null,
     connection: null,
     dotNetRef: null,
-    CHUNK_SIZE: 64 * 1024, // 64KB
+    CHUNK_SIZE: 16 * 1024, // 16KB (Safe MTU for Mobile/TURN traversal)
     receivedChunks: [],
     receivedSize: 0,
     expectedSize: 0,
@@ -113,7 +113,7 @@ window.fileBridge = {
 
         while (offset < file.size) {
             // Respect WebRTC buffer limit to avoid closing the channel
-            if (this.connection.dataChannel && this.connection.dataChannel.bufferedAmount > 1024 * 1024 * 2) {
+            if (this.connection.dataChannel && this.connection.dataChannel.bufferedAmount > 1024 * 512) {
                 await new Promise(r => setTimeout(r, 50));
                 continue;
             }
