@@ -41,5 +41,25 @@ window.zlaInterop = {
             this.html5QrcodeScanner.clear().catch(err => console.warn(err));
             this.html5QrcodeScanner = null;
         }
+    },
+
+    getRecentPeers: function () {
+        try {
+            const peers = localStorage.getItem('skydrop_recent_peers');
+            return peers ? JSON.parse(peers) : [];
+        } catch {
+            return [];
+        }
+    },
+
+    saveRecentPeer: function (peerId) {
+        if (!peerId) return;
+        try {
+            let peers = this.getRecentPeers();
+            peers = peers.filter(p => p !== peerId);
+            peers.unshift(peerId);
+            if (peers.length > 5) peers = peers.slice(0, 5);
+            localStorage.setItem('skydrop_recent_peers', JSON.stringify(peers));
+        } catch { }
     }
 };

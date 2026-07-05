@@ -65,8 +65,13 @@ window.fileBridge = {
             this.dotNetRef.invokeMethodAsync('TriggerConnected');
         });
 
-        this.connection.on('data', (data) => {
-            if (data && data.type === 'metadata') {
+        this.connection.on('data', async (data) => {
+            if (data && data.type === 'clipboard') {
+                try {
+                    await navigator.clipboard.writeText(data.payload);
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                } catch (e) { console.error('Clipboard write failed:', e); }
+            } else if (data && data.type === 'metadata') {
                 this.expectedSize = data.size;
                 this.expectedFileName = data.name;
                 this.expectedFileType = data.fileType;
@@ -145,6 +150,7 @@ window.fileBridge = {
             URL.revokeObjectURL(url);
         }, 100);
         
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         this.dotNetRef.invokeMethodAsync('TriggerTransferComplete');
         
         this.receivedChunks = [];
@@ -185,6 +191,24 @@ window.fileBridge = {
             this.processAndSendFiles(e.target.files);
             filePicker.value = ''; // Reset
         });
+    },
+
+    triggerFilePicker(elementId) {
+        const filePicker = document.getElementById(elementId);
+        if (filePicker) filePicker.click();
+    },
+
+    async beamClipboard() {
+        if (!this.connection || !this.connection.open) return;
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text) {
+                this.connection.send({ type: 'clipboard', payload: text });
+                if (navigator.vibrate) navigator.vibrate([50]);
+            }
+        } catch (e) {
+            console.error("Clipboard read failed:", e);
+        }
     },
 
     setupDropZone(elementId) {

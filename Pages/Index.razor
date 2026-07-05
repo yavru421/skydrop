@@ -7,48 +7,67 @@
 @implements IDisposable
 
 <div class="state-container">
-    @if (CurrentState == AppState.Lobby)
+    @if (CurrentState == AppState.Disconnected)
     {
-        <div class="lobby-state">
-            <h1>sky-drop</h1>
-            <div class="actions">
-                <button class="btn btn-primary" @onclick="HostSession">Host</button>
-                <button class="btn btn-secondary" @onclick="JoinSession">Join</button>
+        <div class="home-state">
+            <header class="app-header">
+                <h1>sky-drop</h1>
+            </header>
+            
+            <div class="qr-host-panel">
+                @if (!string.IsNullOrEmpty(LocalPeerId))
+                {
+                    <div id="qrcode-container" class="qr-container"></div>
+                    <div class="peer-id-display">ID: @LocalPeerId</div>
+                }
+                else
+                {
+                    <div class="pulse-loader">Generating Secure ID...</div>
+                }
             </div>
-        </div>
-    }
-    else if (CurrentState == AppState.Hosting)
-    {
-        <div class="hosting-state">
-            <h2>Your Peer ID</h2>
-            <div class="peer-id-display">@(LocalPeerId ?? "Generating...")</div>
-            @if (!string.IsNullOrEmpty(LocalPeerId))
+
+            <div class="manual-input-panel">
+                <button class="btn btn-primary scan-btn" @onclick="StartQRScanner">
+                    <span class="icon">📷</span> Scan QR
+                </button>
+                <div id="qr-reader" class="qr-reader"></div>
+            </div>
+
+            @if (RecentPeers.Any())
             {
-                <div id="qrcode-container" class="qr-container"></div>
+                <div class="recent-peers-section">
+                    <h3>Recent Devices</h3>
+                    <div class="recent-peers-list">
+                        @foreach (var peer in RecentPeers)
+                        {
+                            <button class="btn btn-secondary recent-peer-btn" @onclick="() => ConnectToPeer(peer)">
+                                <span>@peer</span>
+                                <span>→</span>
+                            </button>
+                        }
+                    </div>
+                </div>
             }
-            <p>Awaiting connection...</p>
-        </div>
-    }
-    else if (CurrentState == AppState.Joining)
-    {
-        <div class="joining-state">
-            <h2>Scan or Enter Peer ID</h2>
-            <div id="qr-reader" class="qr-reader"></div>
-            <input type="text" @bind="TargetPeerId" class="peer-input" placeholder="Manual Peer ID" />
-            <button class="btn btn-primary" @onclick="ConnectToPeer">Connect</button>
-            <button class="btn btn-secondary" @onclick="CancelJoin">Back</button>
         </div>
     }
     else if (CurrentState == AppState.Connected)
     {
-        <div class="connected-state">
-            <div class="file-picker-container" style="margin-bottom: 20px;">
-                <label for="filePicker" class="btn btn-primary">Select Files</label>
+        <div id="drop-zone" class="connected-state drop-zone full-screen-drop">
+            <div class="connected-header">
+                <span class="status-indicator online"></span>
+                <h3>Tunnel Secured</h3>
+            </div>
+            
+            <div class="action-buttons">
+                <label for="filePicker" class="btn btn-primary pulse-btn">Select Files</label>
                 <input type="file" id="filePicker" multiple style="display: none;" />
+                
+                <button class="btn btn-secondary beam-btn" @onclick="BeamClipboard">Beam Clipboard</button>
             </div>
-            <div id="drop-zone" class="drop-zone">
-                <span class="drop-text">Tunnel Locked. Drop Files Here.</span>
-            </div>
+            
+            <span class="drop-hint">Or drop files anywhere</span>
+            
+            <button class="btn-disconnect" @onclick="Disconnect">Disconnect</button>
         </div>
     }
     else if (CurrentState == AppState.Transferring)
@@ -61,20 +80,28 @@
     }
 </div>
 
+@if (ShowIosInstallPrompt)
+{
+    <div class="ios-install-prompt tooltip">
+        <p>For a native experience, tap the <strong>Share</strong> icon and select <strong>Add to Home Screen</strong>.</p>
+        <button class="btn btn-primary" @onclick="DismissIosPrompt">Got it</button>
+    </div>
+}
+
 @code {
     private enum AppState
     {
-        Lobby,
-        Hosting,
-        Joining,
+        Disconnected,
         Connected,
         Transferring
     }
 
-    private AppState CurrentState { get; set; } = AppState.Lobby;
+    private AppState CurrentState { get; set; } = AppState.Disconnected;
     private string? LocalPeerId { get; set; }
     private string TargetPeerId { get; set; } = "";
     private int TransferProgress { get; set; } = 0;
+    private bool ShowIosInstallPrompt { get; set; } = false;
+    private List<string> RecentPeers { get; set; } = new();
     private DotNetObjectReference<Index>? _objRef;
 
     protected override async Task OnInitializedAsync()
@@ -88,52 +115,42 @@
 
         await FileBridge.InitializeAsync();
 
+        var isIosNonStandalone = await JSRuntime.InvokeAsync<bool>("eval", 
+            "(/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) && !window.matchMedia('(display-mode: standalone)').matches");
+        ShowIosInstallPrompt = isIosNonStandalone;
+
+        try
+        {
+            var savedPeers = await JSRuntime.InvokeAsync<string[]>("zlaInterop.getRecentPeers");
+            if (savedPeers != null)
+            {
+                RecentPeers = new List<string>(savedPeers);
+            }
+        }
+        catch { }
+
         var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
         if (uri.Query.Contains("join="))
         {
             TargetPeerId = Uri.UnescapeDataString(uri.Query.Split("join=")[1].Split('&')[0]);
-            CurrentState = AppState.Joining;
-            
             _ = Task.Run(async () => {
-                await Task.Delay(1000); // Give FileBridge a moment to initialize PeerJS
-                await InvokeAsync(ConnectToPeer);
+                await Task.Delay(1500); // Give FileBridge a moment to initialize PeerJS
+                await InvokeAsync(() => ConnectToPeer(TargetPeerId));
             });
         }
     }
 
-    private async void HostSession()
+    private async void StartQRScanner()
     {
-        CurrentState = AppState.Hosting;
-        await InvokeAsync(StateHasChanged);
-        if (!string.IsNullOrEmpty(LocalPeerId))
-        {
-            await Task.Delay(100);
-            var joinUrl = $"https://skydrop.dondlingergc.com/?join={LocalPeerId}";
-            await JSRuntime.InvokeVoidAsync("zlaInterop.generateQR", "qrcode-container", joinUrl);
-        }
-    }
-
-    private async void JoinSession()
-    {
-        CurrentState = AppState.Joining;
-        await InvokeAsync(StateHasChanged);
-        await Task.Delay(100); // Wait for DOM to render qr-reader
         await JSRuntime.InvokeVoidAsync("zlaInterop.startScanner", "qr-reader", _objRef);
     }
 
-    private async void CancelJoin()
+    private async Task ConnectToPeer(string peerId)
     {
-        await JSRuntime.InvokeVoidAsync("zlaInterop.stopScanner");
-        CurrentState = AppState.Lobby;
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task ConnectToPeer()
-    {
-        if (!string.IsNullOrWhiteSpace(TargetPeerId))
+        if (!string.IsNullOrWhiteSpace(peerId))
         {
             await JSRuntime.InvokeVoidAsync("zlaInterop.stopScanner");
-            await FileBridge.ConnectToPeerAsync(TargetPeerId);
+            await FileBridge.ConnectToPeerAsync(peerId);
         }
     }
 
@@ -149,7 +166,7 @@
             TargetPeerId = scannedText;
         }
         StateHasChanged();
-        await ConnectToPeer();
+        await ConnectToPeer(TargetPeerId);
     }
 
     private async void HandlePeerIdGenerated(string peerId)
@@ -157,12 +174,9 @@
         LocalPeerId = peerId;
         await InvokeAsync(StateHasChanged);
         
-        if (CurrentState == AppState.Hosting)
-        {
-            await Task.Delay(100);
-            var joinUrl = $"https://skydrop.dondlingergc.com/?join={peerId}";
-            await JSRuntime.InvokeVoidAsync("zlaInterop.generateQR", "qrcode-container", joinUrl);
-        }
+        await Task.Delay(100);
+        var joinUrl = $"https://skydrop.dondlingergc.com/?join={peerId}";
+        await JSRuntime.InvokeVoidAsync("zlaInterop.generateQR", "qrcode-container", joinUrl);
     }
 
     private async void HandleConnected()
@@ -173,15 +187,29 @@
         await Task.Delay(100); 
         await JSRuntime.InvokeVoidAsync("fileBridge.setupDropZone", "drop-zone");
         await JSRuntime.InvokeVoidAsync("fileBridge.setupFilePicker", "filePicker");
+        
+        // Auto trigger file picker on connect
+        await JSRuntime.InvokeVoidAsync("fileBridge.triggerFilePicker", "filePicker");
+    }
+
+    private async Task BeamClipboard()
+    {
+        await JSRuntime.InvokeVoidAsync("fileBridge.beamClipboard");
     }
 
     private void HandleDisconnected()
     {
-        CurrentState = AppState.Lobby;
-        LocalPeerId = null;
+        CurrentState = AppState.Disconnected;
         TargetPeerId = "";
         TransferProgress = 0;
         InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Disconnect()
+    {
+        await JSRuntime.InvokeVoidAsync("fileBridge.dispose");
+        HandleDisconnected();
+        await FileBridge.InitializeAsync();
     }
 
     private void HandleTransferProgress(int percentage)
@@ -203,6 +231,11 @@
         await Task.Delay(100);
         await JSRuntime.InvokeVoidAsync("fileBridge.setupDropZone", "drop-zone");
         await JSRuntime.InvokeVoidAsync("fileBridge.setupFilePicker", "filePicker");
+    }
+
+    private void DismissIosPrompt()
+    {
+        ShowIosInstallPrompt = false;
     }
 
     public void Dispose()
