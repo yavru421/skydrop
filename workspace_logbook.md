@@ -25,3 +25,6 @@
 - Diagnosed clipboard read permission issue caused by Blazor WASM async gap.
 - Bypassed the Blazor interop by directly binding onclick event to JS function in Index.razor to preserve user gesture context.
 - Pushed to main to trigger Cloudflare CI deployment.
+
+- Fixed global app scrolling by replacing 'height: 100vh; overflow: hidden' with 'min-height: 100vh; overflow-x: hidden' on html, body, and root app containers in app.css.
+- Pushed to main to trigger Cloudflare CI deployment.
