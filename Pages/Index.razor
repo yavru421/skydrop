@@ -63,7 +63,7 @@
                 <label for="filePicker" class="btn btn-primary pulse-btn">Select Files</label>
                 <input type="file" id="filePicker" multiple style="display: none;" />
                 
-                <button class="btn btn-secondary beam-btn" @onclick="BeamClipboard">Beam Clipboard</button>
+                <button class="btn btn-secondary beam-btn" onclick="fileBridge.beamClipboard()">Beam Clipboard</button>
             </div>
             
             <span class="drop-hint">Or drop files anywhere</span>
@@ -211,10 +211,7 @@
         await JSRuntime.InvokeVoidAsync("fileBridge.triggerFilePicker", "filePicker");
     }
 
-    private async Task BeamClipboard()
-    {
-        await JSRuntime.InvokeVoidAsync("fileBridge.beamClipboard");
-    }
+
 
     private void HandleDisconnected()
     {

@@ -7,4 +7,21 @@
 - Rewrote `file-bridge.js` to automatically trigger the OS file picker the second a WebRTC connection is secured.
 - Integrated `navigator.vibrate` for haptic physical feedback upon connection, transfer completion, and payload receipt.
 - Built a "Clipboard Beaming" feature utilizing `navigator.clipboard` to instantly fire text/URLs across the tunnel.
-- Deployed the clean, frictionless architecture to Cloudflare.html and _headers. Goal Verification Agent noted unsafe-inline weakens CSP security.
+- Deployed the clean, frictionless architecture to Cloudflare.
+
+## [2026-07-05 09:50:00] Added Help Tooltips Modal
+- Added a `?` help button to the `Index.razor` header.
+- Implemented a dismissible overlay modal (`ShowHelp`) containing step-by-step instructions.
+- Styled the modal to match the dark native aesthetic in `Index.razor.css`.
+- Pushed changes to Cloudflare CI for deployment.
+
+## [2026-07-05 09:51:00] Protocol Update: /learn Rule Added
+- Executed the `/learn` workflow based on user feedback regarding over-engineering.
+- Defined the **SkyDrop ZLA Usability Guardrail**, permanently banning unrequested complex "tech scene" aesthetics and discovery protocols.
+- Mandated frictionless, zero-overhead utility for all future modifications.
+- Saved the rule to `c:\dev\sky-drop\.agents\AGENTS.md` and committed it to the repository.html and _headers. Goal Verification Agent noted unsafe-inline weakens CSP security.
+
+## 2026-07-05: Fix Beam Clipboard
+- Diagnosed clipboard read permission issue caused by Blazor WASM async gap.
+- Bypassed the Blazor interop by directly binding onclick event to JS function in Index.razor to preserve user gesture context.
+- Pushed to main to trigger Cloudflare CI deployment.
