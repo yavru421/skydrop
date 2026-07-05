@@ -28,3 +28,8 @@
 
 - Fixed global app scrolling by replacing 'height: 100vh; overflow: hidden' with 'min-height: 100vh; overflow-x: hidden' on html, body, and root app containers in app.css.
 - Pushed to main to trigger Cloudflare CI deployment.
+
+## 2026-07-05: Remove Beam Clipboard Feature
+- Removed the Beam Clipboard button and help text from Index.razor.
+- Removed beamClipboard function and corresponding receiving handler logic from file-bridge.js.
+- Pushed to main to trigger Cloudflare CI deployment.
